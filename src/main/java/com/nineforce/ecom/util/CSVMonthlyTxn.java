@@ -48,9 +48,6 @@ public class CSVMonthlyTxn {
             for (CSVRecord csvRecord : csvRecords) {
                 // Accessing values by Header names
 
-                String sku = csvRecord.get("TQS_SKU");
-                float price = Float.parseFloat(csvRecord.get("Price"));
-                	System.out.println(sku + " : " + price);
               }
       
             }
@@ -68,7 +65,9 @@ public class CSVMonthlyTxn {
             ) {   
             		List<CSVRecord> csvRecords = csvParser.getRecords();          
             		for (CSVRecord csvRecord : csvRecords) {
-            			
+                    String sku = csvRecord.get("TQS_SKU");
+                    float price = Float.parseFloat(csvRecord.get("Price"));
+                    System.out.println(sku + " : " + price);            			
             		}
         	
         }
