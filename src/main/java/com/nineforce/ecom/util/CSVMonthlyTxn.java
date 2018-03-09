@@ -38,7 +38,7 @@ public class CSVMonthlyTxn {
         ) {
             List<CSVRecord> csvRecords = csvParser.getRecords();
             
-            // 9 types as in 12/31/2017
+            // 9 types as in 12/31/2017    test 3rd commit
             int order_count=0, refund_count=0, shipping_services_count=0, fba_inventory_fee_count=0,
             		fab_customer_return_fee_count=0, adjustment_count=0, service_fee_count=0,transfer_count=0,
             		chargeback_refund=0,
