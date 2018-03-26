@@ -30,10 +30,18 @@ public enum AmznTxnType {
 		return this.typeName;
 	}
 	
+	static public AmznTxnType getEnumType(String strType) {
+		for (AmznTxnType p : AmznTxnType.values()) {
+			if(strType.equals(p.getTypeName()))
+				return p; 
+		}
+		return AmznTxnType.ERROR;
+	}
+	
     public static void main(String[] args) {
         for (AmznTxnType p : AmznTxnType.values())
            System.out.printf("Amazon Transaction Type:  %s is %s%n",
-                             p, p.getTypeName());
+                             p, p.getTypeName()); 
     }
 	
 }
