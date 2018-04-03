@@ -2,7 +2,7 @@ package com.nineforce.ecom.util;
 
 // This record the types of in Amazon financial report txn
 
-public enum AmznTxnType {
+public enum AmznTxnTypeEnum {
 
 	ADJUSTMENT("Adjustment"), 
 	CHARGEBACK_REFUND("Chargeback Refund"),
@@ -22,7 +22,7 @@ public enum AmznTxnType {
 	
 	private final String typeName; 
 	
-	AmznTxnType(String typeName) {
+	AmznTxnTypeEnum(String typeName) {
 		this.typeName = typeName; 
 	}
 			
@@ -30,16 +30,16 @@ public enum AmznTxnType {
 		return this.typeName;
 	}
 	
-	static public AmznTxnType getEnumType(String strType) {
-		for (AmznTxnType p : AmznTxnType.values()) {
+	static public AmznTxnTypeEnum getEnumType(String strType) {
+		for (AmznTxnTypeEnum p : AmznTxnTypeEnum.values()) {
 			if(strType.equals(p.getTypeName()))
 				return p; 
 		}
-		return AmznTxnType.ERROR;
+		return AmznTxnTypeEnum.ERROR;
 	}
 	
     public static void main(String[] args) {
-        for (AmznTxnType p : AmznTxnType.values())
+        for (AmznTxnTypeEnum p : AmznTxnTypeEnum.values())
            System.out.printf("Amazon Transaction Type:  %s is %s%n",
                              p, p.getTypeName()); 
     }
