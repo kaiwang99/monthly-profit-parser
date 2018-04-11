@@ -35,6 +35,7 @@ public enum AmznTxnTypeEnum {
 			if(strType.equals(p.getTypeName()))
 				return p; 
 		}
+		System.out.println("ERROR type[" + strType + "]");
 		return AmznTxnTypeEnum.ERROR;
 	}
 	

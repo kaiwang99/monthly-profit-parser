@@ -12,7 +12,8 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-// parse amazon csv file from reports. mostly use for the month for bonus calculation 
+// parse amazon csv file from reports. mostly use for the month for bonus calculation
+// Hold data in csvRecord and also by type in enummap 
 
 public class AmznCSVTxnParser {
 	String csvFile; 
@@ -43,16 +44,31 @@ public class AmznCSVTxnParser {
 	}
 	
 	void parseFile() throws IOException {
+		boolean foundHeader = false; 
+		int recordCnt = 0; 
+		
         try (
         		Reader reader = Files.newBufferedReader(Paths.get(this.csvFile));
             CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT
-                        .withFirstRecordAsHeader()
+            				.withHeader(AmznCsvHeaderEnum.class)
                         .withIgnoreHeaderCase()
                         .withTrim());
             ) {
             // create enumMap by its xxxTxnType
         		List<CSVRecord> csvRecords = csvParser.getRecords();        	
             for (CSVRecord csvRecord : csvRecords) {
+      
+	        		// skip commented lines. Amazon comment has a few commas, so use 5.
+	        		if (csvRecord.size() < 5) continue; 
+            		
+	        		// sanity check. recordCnt = sum(type) after parse
+	        		if (foundHeader) 
+	        			recordCnt ++;
+	        		else {
+	        			foundHeader = isHeader(csvRecord); 
+	        			continue;
+	        		}
+	        			
                 // Accessing values by Header names
             		String type = csvRecord.get("type");
             		AmznTxnTypeEnum curType = AmznTxnTypeEnum.getEnumType(type);
@@ -63,22 +79,44 @@ public class AmznCSVTxnParser {
             		
             		curTypeSum.increaseTxnCnt();
             		// TODO, sum the dollar amt
-
             } // end for
             
-            System.out.println("total parse = " + getParsedRecordCnt() + " tlt csv record = " + csvRecords.size()); 
+            if (recordCnt == getParsedRecordCnt()) 
+            		System.out.println("Parsed " + recordCnt + " useful records successfully!");
+            else 
+            		System.out.println("sum types  = " + getParsedRecordCnt() + 
+            					"\ntlt useful = "  + recordCnt + 
+            		             "\ntlt record = " + csvRecords.size()); 
         
         } //end try-final 
 	}
 	
 	/**
+	 * Comparing value of csvRecord for the string of Enum type. 
+	 * @param rec
+	 * @return
+	 */
+	boolean isHeader(CSVRecord rec) {
+		for (AmznCsvHeaderEnum enumHdr: AmznCsvHeaderEnum.values()) {
+			if (!rec.get(enumHdr).equals(enumHdr.getHeaderName()))  
+				return false; 
+		}
+		return true; 
+	}
+	
+	/**
 	 * Print our summary to stand out
+	 */
+	/**
+	 * 
 	 */
 	public void displaySummary() {
         Iterator<AmznTxnTypeEnum> enumKeySet = txnByTypes.keySet().iterator();
         while(enumKeySet.hasNext()){
         		AmznTxnTypeEnum curTxnType = enumKeySet.next();
-            System.out.println("key : " + curTxnType + " value : " + txnByTypes.get(curTxnType));
+            System.out.printf("%-26s Txn = %6d\tAmt = %8.2f%n", curTxnType,  
+            			((AmznTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnCnt(), 
+            			((AmznTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnAmt());
         }
 	}
 	
