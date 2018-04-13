@@ -6,7 +6,7 @@ package com.nineforce.ecom.util;
 public class AmznTxnTypeSum {
 	AmznTxnTypeEnum txnType; 
 	int totalTxnCnt;
-	float totalTxnAmt;  //use currency? 
+	double totalTxnAmt;  //Currency only has symbols. Use double for amount 
 	
 	public AmznTxnTypeSum(AmznTxnTypeEnum aTxnType) {
 		this.txnType = aTxnType; 
@@ -18,12 +18,12 @@ public class AmznTxnTypeSum {
 		totalTxnCnt++;
 	}
 	
-	public void addTxnAmt(float mnt) {
+	public void addTxnAmt(double mnt) {
 		totalTxnAmt = totalTxnAmt + mnt; 
 	}
 	
 	public int getTotalTxnCnt() { return totalTxnCnt;}
-	public float getTotalTxnAmt() { return totalTxnAmt;}	
+	public double getTotalTxnAmt() { return totalTxnAmt;}	
 	
 	public String toString() {
 		return " Total Txn " + totalTxnCnt + ", and Total Amount " + totalTxnAmt;
