@@ -1,6 +1,6 @@
 package com.nineforce.ecom.util;
 
-public class NineforceAccount {
+public class NFAccountEnum {
 	enum AMZN {
 		TQS, WSD, SQB, AD, HG; 
 	}
