@@ -13,7 +13,7 @@ public class FbaReturnGeneratorTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		 gen = new FbaReturnGenerator("test-file"); 
+		 gen = new FbaReturnGenerator("tqs", "test-file"); 
 	}
 
 	@AfterClass

@@ -16,6 +16,8 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
+import com.nineforce.ecom.util.NFAccountEnum;
+
 /** 
  * Read in a csv file about returns then generate tab delimited files for each SKU
  * Set break into small returns, set ORDER_SIZE 
@@ -32,16 +34,38 @@ import org.apache.commons.csv.CSVRecord;
 public class FbaReturnGenerator {
 	
 	final int MAX_ORDR_SEQ = 99; 
-	
 	final int ORDER_SIZE = 36; 
 	final String subDir= "fba-returns";
-	int totalOrder=0, totalQtyOutput=0, totalQtyInput=0;
 	
+	// Those vars are account dependent
+	String addressHeader = null; 
+	String orderPrefix = null;
+	
+	NFAccountEnum.AMZN amznAcctName = null; 
 	String returnFile = null; 
+	
+	int totalOrder=0, totalQtyOutput=0, totalQtyInput=0;
 	Hashtable<String, String> retSkuQty = new Hashtable<String, String>(); 
 	
-	public FbaReturnGenerator(String returnFile) {
+	public FbaReturnGenerator(String amznAcct, String returnFile) {
+		this.amznAcctName = NFAccountEnum.AMZN.getEnumType(amznAcct);
 		this.returnFile = returnFile;
+		initByAccount();
+	}
+	
+	/**
+	 * Set variables by account
+	 */
+	void initByAccount()	{
+		switch (this.amznAcctName) {
+		case TQS: addressHeader = TQS_HDR; orderPrefix = "R"; break;
+		case SQB: addressHeader = SQB_HDR; orderPrefix = "S"; break;
+		case HG:  addressHeader = HG_HDR;  orderPrefix = "H"; break;
+		default: 
+			addressHeader = null; 
+			System.out.println("No output file address header found.");
+			System.exit(1);
+		}
 	}
 	
 	/**
@@ -94,7 +118,7 @@ public class FbaReturnGenerator {
 
 			String sku = (String)it.nextElement();
 			String qty = (String) retSkuQty.get(sku); 
-			String order_num_base = "H" + counter++;
+			String order_num_base = orderPrefix + counter++;
 			
 			//System.out.println(sku + "--" + qty + "--" + order_num_base);
 			createFile(order_num_base, sku, qty, csvPrinter); 
@@ -147,7 +171,7 @@ public class FbaReturnGenerator {
 			bw.write(order_num); 
 			bw.write("\r\n"); 
 			
-			bw.write(HG_HDR);
+			bw.write(addressHeader);
 
 					
 			// for large qty, separate into small ones
@@ -218,9 +242,9 @@ public class FbaReturnGenerator {
 
 	public static void main(String[] args) {
 		
-		System.out.println(args[0]);
+		System.out.println("Usage: account-name[tqs|ha|sqb], file-name" +  args[0] + ", " + args[1]);
 		
-		FbaReturnGenerator gen = new FbaReturnGenerator(args[0]); 
+		FbaReturnGenerator gen = new FbaReturnGenerator(args[0], args[1]); 
 		try {
 			gen.parse();
 			gen.genReturnFiles();
