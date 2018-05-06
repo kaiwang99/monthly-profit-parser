@@ -1,34 +1,53 @@
 package com.nineforce.ecom.util;
 
-public class NFAccountEnum {
-	public enum AMZN {
-		TQS("tqs"), WSD("wsd"), SQB("sqb"), AD("ad"), HG("hg"); 
-		final String amznAccountName;
-		
-		AMZN(String name) {
-			this.amznAccountName = name; 
-		}
-		
-		public String getAccountName() {
-			return this.amznAccountName;
-		}
-		
-		static public NFAccountEnum.AMZN getEnumType(String strType) {
-			for (AMZN p : AMZN.values()) {
-				if(strType.equals(p.getAccountName()))
-					return p; 
-			}
-			System.out.println("ERROR type[" + strType + "]");
-			System.exit(1);
-			return null; 
-		}
-	}
+import static com.nineforce.ecom.util.NFAccountTypeEnum.*;
 
-	public enum WMT {
-		TQS;
+public enum NFAccountEnum {
+
+	AMZN_TQS(NFAccountTypeEnum.AMZN, "tqs"), 
+	AMZN_WSD(AMZN,"wsd"), 
+	AMZN_SQB(AMZN,"sqb"), 
+	AMZN_AD(NFAccountTypeEnum.AMZN,"ad"), 
+	AMZN_HG(AMZN,"hg"), 
+	
+	EBAY_TQS(EBAY, "tqs"), 
+	EBAY_SS(EBAY, "ss"),
+	EBAY_WSD(EBAY, "wsd"),
+	EBAY_VE(EBAY, "ve"),
+	
+	WMT_TQS(WMT, "tqs"),
+	ETSY_TQS(ETSY, "tqs");   //this by SKU association even "WishDesigned" name.
+	
+	
+	final String accountName;
+	final NFAccountTypeEnum accountType;
+	
+	NFAccountEnum(NFAccountTypeEnum type, String name) {
+		this.accountName = name; 
+		this.accountType = type; 
 	}
 	
-	public enum EBAY {
-		TQS, WSD, VE, SS;
+	public String getAccountName() {
+		return this.accountName;
 	}
+	
+	public NFAccountTypeEnum getAccountType() {
+		return this.accountType;
+	}
+	
+	public static NFAccountEnum  getEnumType(NFAccountTypeEnum type, String acctName) {
+		for(NFAccountEnum a: NFAccountEnum.values()) {
+			if(a.getAccountType() == type) {
+				if(a.getAccountName().equalsIgnoreCase(acctName))
+						return a;
+			}
+		}
+		return null; 
+	}
+	
+	
+	public String toString() {
+		return accountType.toString() + "-" + accountName; 
+	}
+	
 }

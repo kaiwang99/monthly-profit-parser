@@ -17,6 +17,8 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
 import com.nineforce.ecom.util.NFAccountEnum;
+import com.nineforce.ecom.util.NFAccountTypeEnum;
+//import static com.nineforce.ecom.util.NFAccountEnum.*;
 
 /** 
  * Read in a csv file about returns then generate tab delimited files for each SKU
@@ -41,14 +43,14 @@ public class FbaReturnGenerator {
 	String addressHeader = null; 
 	String orderPrefix = null;
 	
-	NFAccountEnum.AMZN amznAcctName = null; 
+	NFAccountEnum amznAcctEnum = null; 
 	String returnFile = null; 
 	
 	int totalOrder=0, totalQtyOutput=0, totalQtyInput=0;
 	Hashtable<String, String> retSkuQty = new Hashtable<String, String>(); 
 	
-	public FbaReturnGenerator(String amznAcct, String returnFile) {
-		this.amznAcctName = NFAccountEnum.AMZN.getEnumType(amznAcct);
+	public FbaReturnGenerator(String amznAcctName, String returnFile) {
+		this.amznAcctEnum = NFAccountEnum.getEnumType(NFAccountTypeEnum.AMZN, amznAcctName);
 		this.returnFile = returnFile;
 		initByAccount();
 	}
@@ -57,10 +59,10 @@ public class FbaReturnGenerator {
 	 * Set variables by account
 	 */
 	void initByAccount()	{
-		switch (this.amznAcctName) {
-		case TQS: addressHeader = TQS_HDR; orderPrefix = "R"; break;
-		case SQB: addressHeader = SQB_HDR; orderPrefix = "S"; break;
-		case HG:  addressHeader = HG_HDR;  orderPrefix = "H"; break;
+		switch (this.amznAcctEnum) {
+		case AMZN_TQS: addressHeader = TQS_HDR; orderPrefix = "R"; break;
+		case AMZN_SQB: addressHeader = SQB_HDR; orderPrefix = "S"; break;
+		case AMZN_HG:  addressHeader = HG_HDR;  orderPrefix = "H"; break;
 		default: 
 			addressHeader = null; 
 			System.out.println("No output file address header found.");
@@ -242,7 +244,11 @@ public class FbaReturnGenerator {
 
 	public static void main(String[] args) {
 		
-		System.out.println("Usage: account-name[tqs|ha|sqb], file-name" +  args[0] + ", " + args[1]);
+		if (args.length != 2) {
+			System.out.println("Usage: account-name[tqs|ha|sqb], file-name" +  args[0] + ", " + args[1]);
+			System.exit(1);
+		}
+		
 		
 		FbaReturnGenerator gen = new FbaReturnGenerator(args[0], args[1]); 
 		try {

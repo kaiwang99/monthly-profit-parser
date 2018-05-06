@@ -1,1 +1,11 @@
 /target/
+
+
+#eclipse files
+.classpath
+.project
+
+
+# Generated files
+/fba-returns/
+/fba-returns-backup/

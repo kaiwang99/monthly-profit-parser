@@ -46,7 +46,13 @@ public class AmznCSVTxnParser {
 		return sum;
 	}
 	
-	void parseFile() throws IOException {
+	/**
+	 * Parse input file. Create txnByTypes that organize records by types. 
+	 * @return  number of records that are really useful. 
+	 * @throws IOException
+	 */
+	
+	int parseFile() throws IOException {
 		boolean foundHeader = false; 
 		int recordCnt = 0; 
 		
@@ -98,7 +104,7 @@ public class AmznCSVTxnParser {
             		             "\ntlt record = " + csvRecords.size()); 
      
         } //end try-final 
-
+        return recordCnt; 
 	}
 	
 	/**
