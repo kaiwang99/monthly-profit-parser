@@ -4,8 +4,13 @@
 #eclipse files
 .classpath
 .project
+*.xlsx
 
 
 # Generated files
 /fba-returns/
+/fba-returns-input/
 /fba-returns-backup/
+/AprTxn/
+/FebTxn/
+/src/main/resources/*.csv

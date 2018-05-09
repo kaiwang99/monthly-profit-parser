@@ -39,8 +39,27 @@ class NFAccountEnumTest {
 	}
 
 	@Test
-	final void testGetEnumType() {
-		NFAccountEnum a = NFAccountEnum.getEnumType(NFAccountTypeEnum.AMZN, "tqs");
-		assertEquals(a, NFAccountEnum.AMZN_TQS);
+	final void testGetEnumTypeByTypeAndName() {
+		NFAccountEnum a = NFAccountEnum.getEnumType(NFAccountTypeEnum.AMZN, "wSd");
+		assertEquals(a, NFAccountEnum.AMZN_WSD);
+		
+		a = NFAccountEnum.getEnumType(NFAccountTypeEnum.EBAY, "ss");
+		assertEquals(a, NFAccountEnum.EBAY_SS);
+		
+		a = NFAccountEnum.getEnumType(NFAccountTypeEnum.WMT, "tqs");
+		assertEquals(a, NFAccountEnum.WMT_TQS);
+		
+		a = NFAccountEnum.getEnumType(NFAccountTypeEnum.AMZN, "wSd-1");
+		assertNotEquals(a, NFAccountEnum.AMZN_WSD);
 	}
+	
+	@Test
+	final void testGetEnumTypeByString() {
+		NFAccountEnum a = NFAccountEnum.getEnumType("2018FebMonthlyTransaction-Amazon-AD.csv");
+		System.out.println("in test " + a);
+		assertEquals(a, NFAccountEnum.AMZN_AD);
+	}
+	
+	
+	
 }

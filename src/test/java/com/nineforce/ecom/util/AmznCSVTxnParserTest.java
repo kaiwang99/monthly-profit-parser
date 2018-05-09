@@ -60,4 +60,11 @@ class AmznCSVTxnParserTest {
 		fail("Not yet implemented"); // TODO
 	}
 
+	@Test
+	void testInitOutputFile() {
+		parser.initOutputFile();
+		String xlsx = SAMPLE_CSV_FILE_PATH.replace("csv", "xlsx");
+		assertEquals(parser.xlsxOutputFile, xlsx);
+		
+	}
 }

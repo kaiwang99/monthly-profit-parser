@@ -45,6 +45,22 @@ public enum NFAccountEnum {
 		return null; 
 	}
 	
+	/**
+	 * Pass in a string, and check if it may match any type
+	 * @param aString
+	 * @return
+	 */
+	public static NFAccountEnum  getEnumType(String aString) {
+		String upperAString = aString.toUpperCase();
+		
+		for(NFAccountEnum a: NFAccountEnum.values()) {
+			String upperAcctStr = a.toString().toUpperCase();			
+			if(upperAString.contains(upperAcctStr)) 
+				return a;
+		}
+		return null; 
+	}
+	
 	
 	public String toString() {
 		return accountType.toString() + "-" + accountName; 
