@@ -5,6 +5,7 @@ import java.io.File;
 //import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Locale;
 
 //import static com.nineforce.ecom.util.NFAccountTypeEnum.*;
 
@@ -18,7 +19,7 @@ import java.util.ArrayList;
 public class CSVMonthlyTxn {
 	// TODO This can be in another class. Current Rate and 3% for commission. 
 	// Commission can be different to each account and can be trigger more or less by growth. 
-	static public final double CUR_USDRMB = 6.38; 
+	static public final double CUR_USDRMB = 6.33; 
 	static public final double Bonus_RATE = 0.03;
 	
     String sourceDir;
@@ -55,6 +56,7 @@ public class CSVMonthlyTxn {
                 lastPeriodPos = fileName.lastIndexOf('.');
                 if (lastPeriodPos > 0)
                 		fileName = fileName.substring(0, lastPeriodPos);
+                
                 System.out.println("File name is " + fileName);
             }
         }
@@ -103,6 +105,7 @@ public class CSVMonthlyTxn {
     				case ETSY:
     				default: System.out.println(" TO BE DONE");
     			}
+    			
     			parser.setCOGS(nfAcct, cogs);
     			parser.parseFile();
     			parser.displaySummary();
@@ -111,6 +114,7 @@ public class CSVMonthlyTxn {
     		return numFileParsed; 
     }
     
+
     
     /**
      * @param args
@@ -120,7 +124,7 @@ public class CSVMonthlyTxn {
     		
     		System.out.println("=========running  ===========\n");
     		
-    		CSVMonthlyTxn mon = new CSVMonthlyTxn("AprTxn");
+    		CSVMonthlyTxn mon = new CSVMonthlyTxn("FebTxn");
     		mon.parseFileInDir();
     }
     

@@ -1,6 +1,7 @@
 package com.nineforce.ecom.util;
 
 import java.io.IOException;
+import java.util.Locale;
 
 public interface NFcsvParser {
 	
@@ -22,6 +23,12 @@ public interface NFcsvParser {
 	 * @return
 	 */
 	public void setCOGS(NFAccountEnum enumAccount, COGS cogs);
+	
+	/**
+	 * Set locale for EU countried. The file header, type string, and currency are localized. 
+	 * @param locale
+	 */
+	//public void setLocale(Locale locale);
 	
 	public void displaySummary();
 }

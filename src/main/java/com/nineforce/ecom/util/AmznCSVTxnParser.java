@@ -5,14 +5,18 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -34,6 +38,8 @@ public class AmznCSVTxnParser implements NFcsvParser {
 	XSSFWorkbook workbook;
 	XSSFSheet spreadsheet;
 	int rowid;
+	Locale curLocale; 
+	HashMap locTypeStdTypeMap;
 	
 	COGS cogs;
 	NFAccountEnum enumAccount;
@@ -42,14 +48,19 @@ public class AmznCSVTxnParser implements NFcsvParser {
 	float totalCOGS = (float) 0.0;
 	float totalNet = (float) 0.0; 
 	
-	EnumMap<AmznTxnTypeEnum, AmznTxnTypeSum> txnByTypes; 
+	EnumMap<AmznTxnTypeEnum, AmznTxnTypeSum> txnByTypes;
+	private ResourceBundle messages; 
 	
 	public AmznCSVTxnParser(String csvFile) {
+		this.curLocale = new Locale("en", "US");
 		this.csvInputFile = csvFile;
 		txnByTypes = new EnumMap<> (AmznTxnTypeEnum.class);
 		
 		// initiate the map, so don't check null in parse CSVRecord loop
 		initEnumMap();
+		curLocale = getLocale(csvFile);
+		 messages = ResourceBundle.getBundle("MessagesBundle",curLocale);
+		locTypeStdTypeMap = Util.getAmznTypeMapByLocale(curLocale);
 	}
 
 	void initEnumMap() {
@@ -58,12 +69,13 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		}
 	}
 	
+
 	/**
 	 * create xlsx file and leave enough for summary 
 	 * 
 	 * @return 
 	 */
-	void initOutputFile() {
+	private void initOutputFile() {
 		int lastDotIndex = csvInputFile.lastIndexOf('.');
 		xlsxOutputFile = csvInputFile.substring(0, lastDotIndex) + ".xlsx";
 		
@@ -78,6 +90,23 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		rowid = SUMMARY_LEN;
 	}
 	
+	
+	void writeOutHeaderLine(Map<String, Integer> hdrMap) {
+		XSSFRow row = spreadsheet.createRow(rowid++);
+		int cellid = 0;
+		Cell cell = null;
+		
+		for (Map.Entry<String, Integer> entry : hdrMap.entrySet()) {
+		    System.out.println(entry.getKey() + " = " + entry.getValue());
+		    cellid = entry.getValue();
+			cell = row.createCell(cellid);
+	        cell.setCellValue(entry.getKey());		
+		}
+		cellid = hdrMap.size();
+		cell = row.createCell(cellid++); cell.setCellValue("CGOS");
+		cell = row.createCell(cellid++); cell.setCellValue("Nets");
+	}
+	
 	/**
 	 * Write content of xlsx, line by line
 	 * 1) Header: add COGS and Net
@@ -85,29 +114,26 @@ public class AmznCSVTxnParser implements NFcsvParser {
 	 * 3) Other type: just copy over
 	 * 
 	 * @param csvRecord
-	 * @param type
+	 * @param typeEnum
 	 */
-	void writeOutLine(CSVRecord csvRecord, String type, double total) {
+	void writeOutItemLine(CSVRecord csvRecord, AmznTxnTypeEnum typeEnum, double total) {
 		
 		XSSFRow row = spreadsheet.createRow(rowid++);
 		int cellid = 0;
 		Cell cell = null;
 		
-         for (cellid=0; cellid<csvRecord.size(); cellid++) {
+		// copy over typical line items
+		for (cellid=0; cellid<csvRecord.size(); cellid++) {
             cell = row.createCell(cellid);
             cell.setCellValue(csvRecord.get(cellid));
          }
-		
-		if (type.equals(HEADER))  {  // header
-	         cell = row.createCell(cellid++);
-	         cell.setCellValue("COGS");
-	         cell = row.createCell(cellid++);
-	         cell.setCellValue("Profit");
-	      }
-		
+		  
+		// Write out COGS and Net for ORDER Type 
+		String locSKU= messages.getString("sku");
+
 		// type order handle. Too bad, due to HEADER, can't use AmznTxnTypeEnum
-		if(type.equalsIgnoreCase("Order")) {
-			String sku = csvRecord.get("sku");
+		if (typeEnum == AmznTxnTypeEnum.ORDER) {
+			String sku = csvRecord.get(locSKU);
 			if(sku != null) {
 				float skuCOGS = cogs.getCOGS	(enumAccount, sku);
 				float net = (float)total - skuCOGS;
@@ -158,9 +184,17 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		cell = frontRow[topRowid].createCell(6); 
 		cell.setCellValue(round(monthlyGross * CSVMonthlyTxn.Bonus_RATE));
 		
-		cell = frontRow[topRowid].createCell(8); 
+		cell = frontRow[topRowid].createCell(8); cell.setCellValue("ExchgRate");
+		cell = frontRow[topRowid].createCell(9); cell.setCellValue(CSVMonthlyTxn.CUR_USDRMB);
+		
+		cell = frontRow[topRowid].createCell(10); 
 		cell.setCellValue(round(monthlyGross * CSVMonthlyTxn.Bonus_RATE * CSVMonthlyTxn.CUR_USDRMB));
-		cell = frontRow[topRowid].createCell(9); cell.setCellValue("RMB");
+		cell = frontRow[topRowid].createCell(11); cell.setCellValue("RMB");
+		
+		//Warn TQS-EU and US about ads-cost
+        topRowid++;
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Possible ad-exense");
+
 	}
 	
 	void closeOutputFile() {
@@ -205,6 +239,61 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		initOutputFile();
 	}
 	
+	public static  boolean isEnglishLocale(Locale aLocale) {
+		return aLocale.getLanguage().equalsIgnoreCase("en");
+	}
+	
+	public static  boolean isUSLocale(Locale aLocale) {
+		return aLocale.getCountry().equalsIgnoreCase("US");
+	}
+	
+	
+    /**
+     * Detect locael from csv file name pattern
+     * @param fileName
+     * @return
+     */
+    public static Locale getLocale(String fileName) {
+    		Locale retLocale = new Locale("en", "US");
+    		String lowerFileName = fileName.toLowerCase();
+    		
+    		if(lowerFileName.contains("amazon-tqs-uk") || lowerFileName.contains("amazon-hg-uk"))
+    			retLocale = new Locale("en", "UK");
+    		else if (lowerFileName.contains("amazon-tqs-de") || lowerFileName.contains("amazon-hg-de"))
+    			retLocale = new Locale("de", "DE");
+    		else if (lowerFileName.contains("amazon-tqs-fr") || lowerFileName.contains("amazon-hg-fr"))
+    			retLocale = new Locale("fr", "FR");
+    		else if (lowerFileName.contains("amazon-tqs-it") || lowerFileName.contains("amazon-hg-it"))
+    			retLocale = new Locale("it", "IT");
+    		else if (lowerFileName.contains("amazon-tqs-es") || lowerFileName.contains("amazon-hg-es"))
+    			retLocale = new Locale("es", "ES");
+    		
+    		return retLocale;
+    }
+    
+    /**
+     * Since non-US file use withFirstRecordAsHeader(), the parser doesn't give the header. 
+     * Need to get it for output file. 
+     * 
+     * Just some redundaten code. 
+     * 
+   
+    CSVRecord getHeader(File inputFile) {
+    	try {
+			CSVParser headerParser = CSVParser.parse(inputFile, Charset.forName("UTF-8"), 
+					CSVFormat.DEFAULT.withIgnoreHeaderCase().withTrim());
+			
+			headerParser.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+      * @return  
+     */
+    
+    
+    
 	/**
 	 * Parse input file. Create txnByTypes that organize records by types. 
 	 * Write out xlsx file. Add column of COGS and net.  Add top section of summary and total. 
@@ -215,43 +304,68 @@ public class AmznCSVTxnParser implements NFcsvParser {
 	@Override
 	public int parseFile() throws IOException {
 
-		boolean foundHeader = false; 
+		boolean foundHeaderUS = false; 
 		int recordCnt = 0; 
+		CSVParser csvParser = null;
 		
-        try (
-        		Reader reader = Files.newBufferedReader(Paths.get(this.csvInputFile));
-            CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT
+		String locType = messages.getString("type");
+		String locTotal = messages.getString("total");	
+		
+		
+        try {
+        		File inputFile = new File(csvInputFile);
+        		
+        		// a bit hack for en vs. non-en locales
+        		if(isUSLocale(curLocale)) {
+        			Reader reader = Files.newBufferedReader(Paths.get(this.csvInputFile));
+        			csvParser = new CSVParser(reader, CSVFormat.DEFAULT
             				.withHeader(AmznCsvHeaderEnum.class)
                         .withIgnoreHeaderCase()
                         .withTrim());
-            ) {
+        		} else {
+            		csvParser = CSVParser.parse(inputFile, Charset.forName("UTF-8"), 
+            				CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());
+            		
+            		//headerNonUS = getHeader(inputFile); 
+        		}
+           
+        		// write out header for non-US file. Manuaully remove first 6 lines. 
+        		// withFirstRecordAsHeader() - already remove the header. 
+        		if(!isUSLocale(curLocale)) {
+        			writeOutHeaderLine(csvParser.getHeaderMap());		//Header line has COGS and net
+        		}
+        		
+        		
             // create enumMap by its xxxTxnType
         		List<CSVRecord> csvRecords = csvParser.getRecords();    
-        		
+        		System.out.println("In ======  parseFile()  of AmznCSVTxnParser. Total records:" + csvRecords.size());
             for (CSVRecord csvRecord : csvRecords) {
             		String type = HEADER;  // first is always "header", then normal type
             	
-	        		// sanity check. recordCnt = sum(type) after parse
-	        		if (!foundHeader) {
-	        			foundHeader = isHeader(csvRecord); 
-	        			if (foundHeader)
-	        				writeOutLine(csvRecord, HEADER, 0); // null is header
-	        			continue;
-	        		}
+            		if (!foundHeaderUS && isUSLocale(curLocale)) {
+		        		// sanity check. recordCnt = sum(type) after parse
+		        		foundHeaderUS = isHeader(csvRecord); 
+		        		if (foundHeaderUS)
+		        			writeOutHeaderLine(csvParser.getHeaderMap());  // Header line has COGS and net
+		        		continue;
+            		}  
+
             		recordCnt ++; 
-            		
+	
                 // Accessing values by Header names
-            		type = csvRecord.get("type");
-            		AmznTxnTypeEnum curType = AmznTxnTypeEnum.getEnumType(type);
-            		AmznTxnTypeSum curTypeSum = txnByTypes.get(curType);
+            		type = csvRecord.get(locType);
+            		String stdType = (String) locTypeStdTypeMap.get(type);
+            	System.out.println("local type:" + type + "  stdType:" + stdType);
+            		AmznTxnTypeEnum curTypeEnum = AmznTxnTypeEnum.getEnumType(stdType);
+            		AmznTxnTypeSum curTypeSum = txnByTypes.get(curTypeEnum);
             		
             		if (curTypeSum == null) 
             			System.out.println("Wrong: no AmznTxnTypeSum found");
             		
             		Number num = null;
 				try {
-					num = NumberFormat.getNumberInstance(Locale.US).
-								parse(csvRecord.get(AmznCsvHeaderEnum.Total));
+					num = NumberFormat.getNumberInstance(curLocale).
+								parse(csvRecord.get(locTotal));
 				} catch (ParseException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -263,7 +377,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
             		curTypeSum.increaseTxnCnt();
             		curTypeSum.addTxnAmt(totalAmt);
             		
-            		writeOutLine(csvRecord, type, totalAmt);
+            		writeOutItemLine(csvRecord, curTypeEnum, totalAmt);
             } // end for
             
             if (recordCnt == getParsedRecordCnt()) 
@@ -274,7 +388,11 @@ public class AmznCSVTxnParser implements NFcsvParser {
             		             "\ntlt record = " + csvRecords.size()); 
             writeOutSummary();
             closeOutputFile();
-        } //end try-final 
+        }  catch(IOException e) {
+        		e.printStackTrace();
+        }
+        
+        
         return recordCnt; 
 	}
 	
@@ -288,8 +406,11 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		if (rec.size() < 5) return false; 
 		
 		for (AmznCsvHeaderEnum enumHdr: AmznCsvHeaderEnum.values()) {
-			if (!rec.get(enumHdr).equals(enumHdr.getHeaderName()))  
+			System.out.println(rec.get(enumHdr) + "=" + enumHdr.getHeaderName()); 
+			if (!rec.get(enumHdr).equals(enumHdr.getHeaderName()))  {
+				
 				return false; 
+			}
 		}
 		return true; 
 	}
@@ -317,11 +438,28 @@ public class AmznCSVTxnParser implements NFcsvParser {
      * Should do unit test
      */
     //private static final String SAMPLE_CSV_FILE_PATH = "./src/main/resources/2017DecMonthlyTransaction.csv";	
-	private static final String SAMPLE_CSV_FILE_PATH = "./src/main/resources/2018FebMonthlyTransaction-AD.csv";
-    public static void main(String[] args) throws IOException {
-    		System.out.println("=========running  ===========\n");
+	//private static final String SAMPLE_CSV_FILE_PATH = "./src/main/resources/2018FebMonthlyTransaction-AD.csv";
+    
+	
+	private static final String COGS_PATH = "./src/test/resources/COGS.csv";
+	
+	public static void main(String[] args) throws IOException {
+    		System.out.println("=========running  ===========\n" + args[0]);
     		
-    		AmznCSVTxnParser parser = new AmznCSVTxnParser(SAMPLE_CSV_FILE_PATH);
+    		COGS cogs = new COGS(COGS_PATH);
+    		try {
+    				cogs.parse();
+    		} catch (IOException e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+    		
+    		AmznCSVTxnParser parser = new AmznCSVTxnParser(args[0]);
+    		NFAccountEnum nfAcct = NFAccountEnum.getEnumType(args[0]);
+    		System.out.println("find NFAccountEnum from file name:" + nfAcct);
+    		
+    		parser.setCOGS(nfAcct,  cogs);
+
     		parser.parseFile();
     		parser.displaySummary();
     		
