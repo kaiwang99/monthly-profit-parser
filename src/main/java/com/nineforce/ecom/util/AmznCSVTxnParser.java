@@ -26,6 +26,8 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import com.sun.javafx.scene.paint.GradientUtils.Parser;
+
 // parse amazon csv file from reports. mostly use for the month for bonus calculation
 // Hold data in csvRecord and also by type in enummap 
 
@@ -39,7 +41,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
 	XSSFSheet spreadsheet;
 	int rowid;
 	Locale curLocale; 
-	HashMap locTypeStdTypeMap;
+	HashMap<String, String> locTypeStdTypeMap;
 	
 	COGS cogs;
 	NFAccountEnum enumAccount;
@@ -60,7 +62,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		initEnumMap();
 		curLocale = getLocale(csvFile);
 		 messages = ResourceBundle.getBundle("MessagesBundle",curLocale);
-		locTypeStdTypeMap = Util.getAmznTypeMapByLocale(curLocale);
+		locTypeStdTypeMap = Util.getAmznLocTypeStdTypeMap(curLocale);
 	}
 
 	void initEnumMap() {
@@ -134,16 +136,20 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		// type order handle. Too bad, due to HEADER, can't use AmznTxnTypeEnum
 		if (typeEnum == AmznTxnTypeEnum.ORDER) {
 			String sku = csvRecord.get(locSKU);
+			
+	// TODO easy to get exception on new SKU
+	System.out.println("Get SKU[" + sku + "] for file:" + csvInputFile);
 			if(sku != null) {
-				float skuCOGS = cogs.getCOGS	(enumAccount, sku);
-				float net = (float)total - skuCOGS;
+				float skuCOGS_RMB = cogs.getCOGS	(enumAccount, sku);
+				float skuCOGS_Loc = (float) (skuCOGS_RMB/Util.getCurrentRate(curLocale));
+				float net = (float)total - skuCOGS_Loc;
 				
 		         cell = row.createCell(cellid++);
-		         cell.setCellValue(skuCOGS);
+		         cell.setCellValue(skuCOGS_Loc);
 		         cell = row.createCell(cellid++);
 		         cell.setCellValue(net);
 		         
-		         totalCOGS += skuCOGS;
+		         totalCOGS += skuCOGS_Loc;
 		         totalNet += net;
 			}
 		}
@@ -164,13 +170,17 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		int topRowid = 2;
 		double monthlyGross = 0.0;
 		
+		HashMap<String, String>  stdTypeLocType = Util.getAmznStdTypeLocTypeMap(curLocale);
+		
         Iterator<AmznTxnTypeEnum> enumKeySet = txnByTypes.keySet().iterator();
         while(enumKeySet.hasNext()){
         		AmznTxnTypeEnum curTxnType = enumKeySet.next();
         		double amt = ((AmznTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnAmt(); 
         		frontRow[topRowid].createCell(0); 
-        		cell = frontRow[topRowid].createCell(1); cell.setCellValue(curTxnType.toString());
-        		cell = frontRow[topRowid].createCell(2); cell.setCellValue(round(amt));
+        		String curTypeStr = curTxnType.getTypeName();
+        		cell = frontRow[topRowid].createCell(1); cell.setCellValue(curTypeStr);
+        		cell = frontRow[topRowid].createCell(2); cell.setCellValue(stdTypeLocType.get(curTypeStr));
+        		cell = frontRow[topRowid].createCell(3); cell.setCellValue(round(amt));
         		topRowid++;
         		
         		if (curTxnType != AmznTxnTypeEnum.TRANSFER)   monthlyGross += amt; 
@@ -180,15 +190,17 @@ public class AmznCSVTxnParser implements NFcsvParser {
         topRowid++;
 		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Monthly Gross");
 		cell = frontRow[topRowid].createCell(2); cell.setCellValue(round(monthlyGross));
+		cell = frontRow[topRowid].createCell(3); cell.setCellValue(Util.currencyByLocale(curLocale));
+		
 		cell = frontRow[topRowid].createCell(5); cell.setCellValue("Bonus");
 		cell = frontRow[topRowid].createCell(6); 
-		cell.setCellValue(round(monthlyGross * CSVMonthlyTxn.Bonus_RATE));
+		cell.setCellValue(round(monthlyGross * Util.BONUS_RATE));
 		
 		cell = frontRow[topRowid].createCell(8); cell.setCellValue("ExchgRate");
-		cell = frontRow[topRowid].createCell(9); cell.setCellValue(CSVMonthlyTxn.CUR_USDRMB);
+		cell = frontRow[topRowid].createCell(9); cell.setCellValue(Util.getCurrentRate(curLocale));
 		
 		cell = frontRow[topRowid].createCell(10); 
-		cell.setCellValue(round(monthlyGross * CSVMonthlyTxn.Bonus_RATE * CSVMonthlyTxn.CUR_USDRMB));
+		cell.setCellValue(round(monthlyGross *  Util.BONUS_RATE * Util.getCurrentRate(curLocale)));
 		cell = frontRow[topRowid].createCell(11); cell.setCellValue("RMB");
 		
 		//Warn TQS-EU and US about ads-cost
@@ -254,19 +266,19 @@ public class AmznCSVTxnParser implements NFcsvParser {
      * @return
      */
     public static Locale getLocale(String fileName) {
-    		Locale retLocale = new Locale("en", "US");
+    		Locale retLocale = Util.US_LOCALE;
     		String lowerFileName = fileName.toLowerCase();
     		
     		if(lowerFileName.contains("amazon-tqs-uk") || lowerFileName.contains("amazon-hg-uk"))
-    			retLocale = new Locale("en", "UK");
+    			retLocale = Util.UK_LOCALE;
     		else if (lowerFileName.contains("amazon-tqs-de") || lowerFileName.contains("amazon-hg-de"))
-    			retLocale = new Locale("de", "DE");
+    			retLocale = Util.DE_LOCALE;
     		else if (lowerFileName.contains("amazon-tqs-fr") || lowerFileName.contains("amazon-hg-fr"))
-    			retLocale = new Locale("fr", "FR");
+    			retLocale = Util.FR_LOCALE;
     		else if (lowerFileName.contains("amazon-tqs-it") || lowerFileName.contains("amazon-hg-it"))
-    			retLocale = new Locale("it", "IT");
+    			retLocale = Util.IT_LOCALE;
     		else if (lowerFileName.contains("amazon-tqs-es") || lowerFileName.contains("amazon-hg-es"))
-    			retLocale = new Locale("es", "ES");
+    			retLocale = Util.ES_LOCALE;
     		
     		return retLocale;
     }
@@ -338,7 +350,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
         		
             // create enumMap by its xxxTxnType
         		List<CSVRecord> csvRecords = csvParser.getRecords();    
-        		System.out.println("In ======  parseFile()  of AmznCSVTxnParser. Total records:" + csvRecords.size());
+        		System.out.println("In parseFile()"  + csvInputFile + ". Total records:" + csvRecords.size());
             for (CSVRecord csvRecord : csvRecords) {
             		String type = HEADER;  // first is always "header", then normal type
             	
@@ -355,7 +367,12 @@ public class AmznCSVTxnParser implements NFcsvParser {
                 // Accessing values by Header names
             		type = csvRecord.get(locType);
             		String stdType = (String) locTypeStdTypeMap.get(type);
-            	System.out.println("local type:" + type + "  stdType:" + stdType);
+            		
+            		// TODO log4j here. This is a place that get null exception if 
+            		// I see HG Apr 18, 10% promotion has no type info and strange order number. 
+            	if(stdType == null)	
+          	System.out.println("local type:" + type + "  stdType:" + stdType);
+            	
             		AmznTxnTypeEnum curTypeEnum = AmznTxnTypeEnum.getEnumType(stdType);
             		AmznTxnTypeSum curTypeSum = txnByTypes.get(curTypeEnum);
             		
@@ -388,6 +405,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
             		             "\ntlt record = " + csvRecords.size()); 
             writeOutSummary();
             closeOutputFile();
+            
         }  catch(IOException e) {
         		e.printStackTrace();
         }
@@ -462,6 +480,5 @@ public class AmznCSVTxnParser implements NFcsvParser {
 
     		parser.parseFile();
     		parser.displaySummary();
-    		
     }
 }

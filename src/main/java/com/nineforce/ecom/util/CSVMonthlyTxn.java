@@ -17,10 +17,6 @@ import java.util.Locale;
  */
 
 public class CSVMonthlyTxn {
-	// TODO This can be in another class. Current Rate and 3% for commission. 
-	// Commission can be different to each account and can be trigger more or less by growth. 
-	static public final double CUR_USDRMB = 6.33; 
-	static public final double Bonus_RATE = 0.03;
 	
     String sourceDir;
     ArrayList<String> sourceFiles = new ArrayList<String>();
@@ -124,7 +120,7 @@ public class CSVMonthlyTxn {
     		
     		System.out.println("=========running  ===========\n");
     		
-    		CSVMonthlyTxn mon = new CSVMonthlyTxn("FebTxn");
+    		CSVMonthlyTxn mon = new CSVMonthlyTxn("AprTxn");
     		mon.parseFileInDir();
     }
     

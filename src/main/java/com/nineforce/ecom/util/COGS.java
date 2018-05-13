@@ -23,7 +23,7 @@ import com.nineforce.ecom.util.NFAccountEnum;
  * It will hold data in  acctSKU, COGS pair, and masterSKU, COGS pair. 
  * This is mainly for faster profit calculation. Can be release once the calculation is done. 
  * 
- * COGS is in USD and has ADMIN_OVERHEAD included. 
+ * COGS is in RMB and HAS ADMIN_OVERHEAD included. 
  * 
  * For mapping masterSKU vs. acctSKU, it can be another class, such Product, which 
  * hold masterSKU, product info, COGS, and sold history can be in another table/class.
@@ -34,8 +34,8 @@ import com.nineforce.ecom.util.NFAccountEnum;
 
 // now only hold SKU, Account, Price in RMB
 public class COGS {
-	public static final double USDRMB = 6.25;
-	public static final double ADMIN_OVERHEAD = 0.3;
+
+
 	
 	final static String SL_SUFFIX = "__SL";   
 	final static String SL_SUFFIX2 = "_SL";   // single _
@@ -89,7 +89,7 @@ public class COGS {
 			        		hgSKU==null && sqbSKU==null)
 			        		continue; 
 			        
-			        float price = (float) (Float.parseFloat(priceStr)/USDRMB*(1+ADMIN_OVERHEAD));
+			        float price = (float) (Float.parseFloat(priceStr)*(1+ Util.ADMIN_OVERHEAD));
 			        //System.out.println("COGS count:" + count++ + "  price:" + priceStr);
 			        
 			        if(tqsSKU != null)	allCOGS.get(NFAccountEnum.AMZN_TQS).put(tqsSKU, price);
@@ -113,7 +113,7 @@ public class COGS {
 	}
 	
 	public float getCOGS(NFAccountEnum a, String sku) {
-		System.out.println("getting COGS on SKU :" + sku + " for accout:" + a);
+	//System.out.println("getting COGS on SKU :" + sku + " for accout:" + a);
 		if (allCOGS == null) 
 			System.out.print("allCOGS is null");	
 		//else

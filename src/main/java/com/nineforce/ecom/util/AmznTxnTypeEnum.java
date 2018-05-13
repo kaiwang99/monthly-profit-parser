@@ -26,6 +26,7 @@ public enum AmznTxnTypeEnum {
 	SERVICE_FEE("Service Fee"), 
 	TRANSFER("Transfer"),
 	
+	BLANK_TYPE("Blank_Type"),
 	ERROR("Error");
 
 	
@@ -42,6 +43,12 @@ public enum AmznTxnTypeEnum {
 	}
 	
 	static public AmznTxnTypeEnum getEnumType(String strType) {
+		// For promotion rebate, such as 10% off. It give no type and strange order id
+		// such as c27d292f-19b3-409a-acb7-76eade24d549, but clear desc. 
+		// Use "Blank_Type" as a holder this kind of situation. 
+		if (strType == null) return BLANK_TYPE;
+		if (strType.trim().length() < 2)  return BLANK_TYPE;
+		
 		for (AmznTxnTypeEnum p : AmznTxnTypeEnum.values()) {
 			if(strType.equals(p.getTypeName()))
 				return p; 
