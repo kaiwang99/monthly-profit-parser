@@ -99,7 +99,6 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		Cell cell = null;
 		
 		for (Map.Entry<String, Integer> entry : hdrMap.entrySet()) {
-		    System.out.println(entry.getKey() + " = " + entry.getValue());
 		    cellid = entry.getValue();
 			cell = row.createCell(cellid);
 	        cell.setCellValue(entry.getKey());		
@@ -171,16 +170,17 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		double monthlyGross = 0.0;
 		
 		HashMap<String, String>  stdTypeLocType = Util.getAmznStdTypeLocTypeMap(curLocale);
-		
+	System.out.println(stdTypeLocType);	
         Iterator<AmznTxnTypeEnum> enumKeySet = txnByTypes.keySet().iterator();
         while(enumKeySet.hasNext()){
         		AmznTxnTypeEnum curTxnType = enumKeySet.next();
         		double amt = ((AmznTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnAmt(); 
-        		frontRow[topRowid].createCell(0); 
+        		frontRow[topRowid].createCell(0);  //skip firt col
         		String curTypeStr = curTxnType.getTypeName();
         		cell = frontRow[topRowid].createCell(1); cell.setCellValue(curTypeStr);
-        		cell = frontRow[topRowid].createCell(2); cell.setCellValue(stdTypeLocType.get(curTypeStr));
-        		cell = frontRow[topRowid].createCell(3); cell.setCellValue(round(amt));
+        		cell = frontRow[topRowid].createCell(2); cell.setCellValue(((AmznTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnCnt());
+        		cell = frontRow[topRowid].createCell(3); cell.setCellValue(stdTypeLocType.get(curTypeStr));
+        		cell = frontRow[topRowid].createCell(4); cell.setCellValue(round(amt));
         		topRowid++;
         		
         		if (curTxnType != AmznTxnTypeEnum.TRANSFER)   monthlyGross += amt; 
