@@ -1,6 +1,8 @@
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,6 +13,11 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 import javax.swing.text.html.HTMLDocument.Iterator;
 
 //kai test git
@@ -18,6 +25,9 @@ public class BasicCSVReader {
     private static final String SAMPLE_CSV_FILE_PATH = "FebTxn/2018AprMonthlyTransaction-amazon-tqs-de.csv";
 
     public static void main(String[] args) throws IOException {
+    	
+        Logger logger = (Logger) LoggerFactory.getLogger(BasicCSVReader.class);
+        
         try {
         		
         		//File resourcesDirectory = new File("src/test/resources");
@@ -39,6 +49,7 @@ public class BasicCSVReader {
             for (CSVRecord csvRecord : csvRecords) {
             		for (int j=0; j<csvRecord.size(); j++) {
             			System.out.print(csvRecord.get(j) + ", ");
+            			logger.debug(csvRecord.get(j) + ", ");
             		}
             		System.out.println();
             		

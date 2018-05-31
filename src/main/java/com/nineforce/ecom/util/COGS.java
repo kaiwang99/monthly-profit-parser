@@ -14,8 +14,14 @@ import java.util.Map;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.nineforce.ecom.util.NFAccountEnum;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 
 /** 
@@ -35,8 +41,6 @@ import com.nineforce.ecom.util.NFAccountEnum;
 // now only hold SKU, Account, Price in RMB
 public class COGS {
 
-
-	
 	final static String SL_SUFFIX = "__SL";   
 	final static String SL_SUFFIX2 = "_SL";   // single _
 	final static String KWH_SUFFIX = "-KWH";
@@ -46,6 +50,7 @@ public class COGS {
 	HashMap<NFAccountEnum, HashMap<String, Float>> allCOGS;
 	String file; 
 	
+	public static Logger logger = (Logger) LoggerFactory.getLogger(COGS.class);
 	
 	public COGS(String file) {
 		this.file = file;
@@ -66,6 +71,8 @@ public class COGS {
 		
 		int count = 0;
         Reader reader = Files.newBufferedReader(Paths.get(this.file));
+        logger.info("Start parsing file {}", this.file);
+        
         CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT
                 .withFirstRecordAsHeader()
                 .withIgnoreHeaderCase()
@@ -100,11 +107,15 @@ public class COGS {
 			        
 			        // TODO, for ebay, wmt, and etsy, the report has 15% fees. only add shipping cost?
 			        //		or handle it elesewhere ? this is COGS - can be pure of GOODs
+			        // logger.debug("The new entry is {}. It replaces {}.", entry, oldEntry);
 			        
 			        if(ssSKU != null)	allCOGS.get(NFAccountEnum.EBAY_SS).put(ssSKU, price);
 			        if(veSKU != null)	allCOGS.get(NFAccountEnum.EBAY_VE).put(veSKU, price);
 
 			        //System.out.println(tqsSKU + ssSKU + wsdSKU + veSKU + adSKU + hgSKU + sqbSKU + ", " + price);
+			        
+			        Object[] paramArray = {tqsSKU, ssSKU, wsdSKU, veSKU, adSKU, hgSKU, sqbSKU, price};
+			        logger.debug("{}, {}, {}, {}, {}, {}, {} - {}", paramArray);
 			        csvParser.close();
 			    }
         }
