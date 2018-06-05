@@ -1,4 +1,4 @@
-package com.nineforce.ecom.util;
+package com.nineforce.ecom.csvparser;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.*;
@@ -13,6 +13,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import com.nineforce.ecom.csvparser.AmznCSVTxnParser;
+import com.nineforce.ecom.csvparser.COGS;
+import com.nineforce.ecom.csvparser.NFAccountEnum;
 
 class AmznCSVTxnParserTest {
 	

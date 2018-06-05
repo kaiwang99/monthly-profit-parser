@@ -1,4 +1,4 @@
-package com.nineforce.ecom.util;
+package com.nineforce.ecom.csvparser;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,7 +17,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.nineforce.ecom.util.NFAccountEnum;
+import com.nineforce.ecom.csvparser.NFAccountEnum;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +67,7 @@ public class COGS {
 	}
 	
 	
-	int parse() throws IOException {
+	public int parse() throws IOException {
 		
 		int count = 0;
         Reader reader = Files.newBufferedReader(Paths.get(this.file));
@@ -107,13 +107,14 @@ public class COGS {
 			        
 			        // TODO, for ebay, wmt, and etsy, the report has 15% fees. only add shipping cost?
 			        //		or handle it elesewhere ? this is COGS - can be pure of GOODs
-			        // logger.debug("The new entry is {}. It replaces {}.", entry, oldEntry);
+			
 			        
 			        if(ssSKU != null)	allCOGS.get(NFAccountEnum.EBAY_SS).put(ssSKU, price);
 			        if(veSKU != null)	allCOGS.get(NFAccountEnum.EBAY_VE).put(veSKU, price);
 
 			        //System.out.println(tqsSKU + ssSKU + wsdSKU + veSKU + adSKU + hgSKU + sqbSKU + ", " + price);
 			        
+			        // logger.debug("The new entry is {}. It replaces {}.", entry, oldEntry);
 			        Object[] paramArray = {tqsSKU, ssSKU, wsdSKU, veSKU, adSKU, hgSKU, sqbSKU, price};
 			        logger.debug("{}, {}, {}, {}, {}, {}, {} - {}", paramArray);
 			        csvParser.close();

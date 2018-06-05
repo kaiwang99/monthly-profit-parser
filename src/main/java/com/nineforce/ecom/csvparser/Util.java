@@ -1,4 +1,4 @@
-package com.nineforce.ecom.util;
+package com.nineforce.ecom.csvparser;
 
 import java.util.HashMap;
 import java.util.Locale;

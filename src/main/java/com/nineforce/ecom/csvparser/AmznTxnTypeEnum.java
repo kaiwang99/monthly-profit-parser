@@ -1,4 +1,4 @@
-package com.nineforce.ecom.util;
+package com.nineforce.ecom.csvparser;
 
 import java.util.Locale;
 import java.util.ResourceBundle;

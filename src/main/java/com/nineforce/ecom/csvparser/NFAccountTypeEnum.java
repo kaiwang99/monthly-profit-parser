@@ -1,7 +1,7 @@
-package com.nineforce.ecom.util;
+package com.nineforce.ecom.csvparser;
 
 public enum NFAccountTypeEnum {
-	AMZN("Amazon"), EBAY("ebay"), WMT("Walmart"), ETSY("etsy");
+	AMZN("Amazon"), EBAY("ebay"), WMT("Walmart"), ETSY("etsy"), PP("pp");
 	public String type;
 		
 	NFAccountTypeEnum(String type) {

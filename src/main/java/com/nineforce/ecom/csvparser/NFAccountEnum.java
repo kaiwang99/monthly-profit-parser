@@ -1,6 +1,6 @@
-package com.nineforce.ecom.util;
+package com.nineforce.ecom.csvparser;
 
-import static com.nineforce.ecom.util.NFAccountTypeEnum.*;
+import static com.nineforce.ecom.csvparser.NFAccountTypeEnum.*;
 
 public enum NFAccountEnum {
 
@@ -14,6 +14,11 @@ public enum NFAccountEnum {
 	EBAY_SS(EBAY, "ss"),
 	EBAY_WSD(EBAY, "wsd"),
 	EBAY_VE(EBAY, "ve"),
+	
+	PP_TQS(PP, "tqs"), 
+	PP_SS(PP, "ss"),
+	PP_WSD(PP, "wsd"),
+	PP_VE(PP, "ve"),
 	
 	WMT_TQS(WMT, "tqs"),
 	ETSY_TQS(ETSY, "tqs");   //this by SKU association even "WishDesigned" name.
@@ -35,6 +40,17 @@ public enum NFAccountEnum {
 		return this.accountType;
 	}
 	
+	/**
+	 * File names should be in format Type-Name. For example 
+	 * 		amazon-ad
+	 * 		ebay-ve
+	 * 		wmt-tqs
+	 * 		etsy-tqs
+	 * 		
+	 * @param type
+	 * @param acctName
+	 * @return
+	 */
 	public static NFAccountEnum  getEnumType(NFAccountTypeEnum type, String acctName) {
 		for(NFAccountEnum a: NFAccountEnum.values()) {
 			if(a.getAccountType() == type) {
@@ -46,7 +62,13 @@ public enum NFAccountEnum {
 	}
 	
 	/**
-	 * Pass in a string, and check if it may match any type
+	 * Pass in a string, and check if it may match any type. 
+	 * Input String or File names should be in format Type-Name. For example 
+	 * 		amazon-ad
+	 * 		ebay-ve
+	 * 		wmt-tqs
+	 * 		etsy-tqs
+	 * 
 	 * @param aString
 	 * @return
 	 */

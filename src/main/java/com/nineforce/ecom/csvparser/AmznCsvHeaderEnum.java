@@ -1,4 +1,4 @@
-package com.nineforce.ecom.util;
+package com.nineforce.ecom.csvparser;
 
 public enum AmznCsvHeaderEnum {
 	DateTime("date/time"), 

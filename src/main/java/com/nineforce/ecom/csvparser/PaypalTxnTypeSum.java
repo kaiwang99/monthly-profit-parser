@@ -1,14 +1,12 @@
-package com.nineforce.ecom.util;
+package com.nineforce.ecom.csvparser;
 
-// this tracks transaction in the cvs file. 
-// Only do summary info now... many have detail line info
+public class PaypalTxnTypeSum {
 
-public class AmznTxnTypeSum {
-	AmznTxnTypeEnum txnType; 
+	PaypalTxnTypeEnum txnType; 
 	int totalTxnCnt;
 	double totalTxnAmt;  //Currency only has symbols. Use double for amount 
 	
-	public AmznTxnTypeSum(AmznTxnTypeEnum aTxnType) {
+	public PaypalTxnTypeSum(PaypalTxnTypeEnum aTxnType) {
 		this.txnType = aTxnType; 
 		totalTxnCnt = 0;
 		totalTxnAmt = 0;
@@ -26,6 +24,13 @@ public class AmznTxnTypeSum {
 	public double getTotalTxnAmt() { return totalTxnAmt;}	
 	
 	public String toString() {
-		return " Total Txn " + totalTxnCnt + ", and Total Amount " + totalTxnAmt;
+		return "Paypal Total Txn " + totalTxnCnt + ", and Total Amount " + totalTxnAmt;
 	}
+	
+	
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+	}
+
 }

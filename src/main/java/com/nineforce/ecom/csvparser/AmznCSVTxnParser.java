@@ -1,4 +1,4 @@
-package com.nineforce.ecom.util;
+package com.nineforce.ecom.csvparser;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,6 +25,8 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sun.javafx.scene.paint.GradientUtils.Parser;
 
@@ -33,7 +35,8 @@ import com.sun.javafx.scene.paint.GradientUtils.Parser;
 
 public class AmznCSVTxnParser implements NFcsvParser {
 	final int SUMMARY_LEN = 16;   //summar section of the xlsx file
-	final String HEADER = "header";   // just a flage to indicate header of csv. 
+	final String HEADER = "header";   // just a flage to indicate header of csv.
+	public static Logger logger = (Logger) LoggerFactory.getLogger(AmznCSVTxnParser.class);
 	
 	String csvInputFile;
 	String xlsxOutputFile;
@@ -136,8 +139,10 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		if (typeEnum == AmznTxnTypeEnum.ORDER) {
 			String sku = csvRecord.get(locSKU);
 			
-	// TODO easy to get exception on new SKU
-	System.out.println("Get SKU[" + sku + "] for file:" + csvInputFile);
+			// TODO easy to get exception on new SKU
+			System.out.println("Get SKU[" + sku + "] for file:" + csvInputFile);
+			logger.warn("Get SKU[{}] for file:{}", sku, csvInputFile); 
+		
 			if(sku != null) {
 				float skuCOGS_RMB = cogs.getCOGS	(enumAccount, sku);
 				float skuCOGS_Loc = (float) (skuCOGS_RMB/Util.getCurrentRate(curLocale));
@@ -170,7 +175,6 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		double monthlyGross = 0.0;
 		
 		HashMap<String, String>  stdTypeLocType = Util.getAmznStdTypeLocTypeMap(curLocale);
-	System.out.println(stdTypeLocType);	
         Iterator<AmznTxnTypeEnum> enumKeySet = txnByTypes.keySet().iterator();
         while(enumKeySet.hasNext()){
         		AmznTxnTypeEnum curTxnType = enumKeySet.next();
@@ -229,7 +233,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		return Math.round(num*100)/100.00;
 	}
 	
-	int getParsedRecordCnt() {
+	public int getParsedRecordCnt() {
 		int sum = 0;
 		Iterator<AmznTxnTypeEnum> enumKeySet = txnByTypes.keySet().iterator();
         while(enumKeySet.hasNext()){
@@ -351,6 +355,8 @@ public class AmznCSVTxnParser implements NFcsvParser {
             // create enumMap by its xxxTxnType
         		List<CSVRecord> csvRecords = csvParser.getRecords();    
         		System.out.println("In parseFile()"  + csvInputFile + ". Total records:" + csvRecords.size());
+        		logger.debug("In parseFile() {}. Total records:{}", csvInputFile, csvRecords.size());
+        		
             for (CSVRecord csvRecord : csvRecords) {
             		String type = HEADER;  // first is always "header", then normal type
             	
@@ -370,14 +376,18 @@ public class AmznCSVTxnParser implements NFcsvParser {
             		
             		// TODO log4j here. This is a place that get null exception if 
             		// I see HG Apr 18, 10% promotion has no type info and strange order number. 
-            	if(stdType == null)	
-          	System.out.println("local type:" + type + "  stdType:" + stdType);
+            		if(stdType == null)	{ 
+            			System.out.println("local type:" + type + "  stdType:" + stdType);
+            			logger.warn("local type:{}  stdType:{}", type, stdType);
+            		}
             	
             		AmznTxnTypeEnum curTypeEnum = AmznTxnTypeEnum.getEnumType(stdType);
             		AmznTxnTypeSum curTypeSum = txnByTypes.get(curTypeEnum);
             		
-            		if (curTypeSum == null) 
+            		if (curTypeSum == null) {
             			System.out.println("Wrong: no AmznTxnTypeSum found");
+            			logger.error("Wrong: no AmznTxnTypeSum found{}", curTypeSum);
+            		}
             		
             		Number num = null;
 				try {

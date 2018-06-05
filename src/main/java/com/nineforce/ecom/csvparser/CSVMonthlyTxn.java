@@ -1,11 +1,13 @@
-package com.nineforce.ecom.util;
+package com.nineforce.ecom.csvparser;
 
 
 import java.io.File;
 //import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Locale;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 //import static com.nineforce.ecom.util.NFAccountTypeEnum.*;
 
@@ -17,6 +19,8 @@ import java.util.Locale;
  */
 
 public class CSVMonthlyTxn {
+	
+	public static Logger logger = (Logger) LoggerFactory.getLogger(CSVMonthlyTxn.class);
 	
     String sourceDir;
     ArrayList<String> sourceFiles = new ArrayList<String>();
@@ -54,11 +58,13 @@ public class CSVMonthlyTxn {
                 		fileName = fileName.substring(0, lastPeriodPos);
                 
                 System.out.println("File name is " + fileName);
+                logger.info("File name is {}", fileName);
             }
         }
     }
     
     void initCOGS() {
+    		logger.info("initCOGS() on file: {}/COGS.csv" + this.sourceDir);
     		cogs = new COGS(this.sourceDir + "/COGS.csv");
     		try {
     				cogs.parse();
@@ -96,7 +102,8 @@ public class CSVMonthlyTxn {
     			
     			switch (nfAcct.getAccountType()) {
     				case AMZN: parser = new AmznCSVTxnParser(sourceDir + File.separator + aFile); break;
-    				case EBAY: 
+    				case PP:   			break;
+    				case EBAY:    break; // parsed by PP;
     				case WMT:
     				case ETSY:
     				default: System.out.println(" TO BE DONE");

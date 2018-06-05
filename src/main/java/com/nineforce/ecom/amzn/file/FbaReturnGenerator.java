@@ -16,9 +16,8 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
-import com.nineforce.ecom.util.NFAccountEnum;
-import com.nineforce.ecom.util.NFAccountTypeEnum;
-//import static com.nineforce.ecom.util.NFAccountEnum.*;
+import com.nineforce.ecom.csvparser.NFAccountEnum;
+import com.nineforce.ecom.csvparser.NFAccountTypeEnum;
 
 /** 
  * Read in a csv file about returns then generate tab delimited files for each SKU

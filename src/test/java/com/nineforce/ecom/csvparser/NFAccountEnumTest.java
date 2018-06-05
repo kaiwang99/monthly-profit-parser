@@ -1,4 +1,4 @@
-package com.nineforce.ecom.util;
+package com.nineforce.ecom.csvparser;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -8,9 +8,16 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.nineforce.ecom.csvparser.NFAccountEnum;
+import com.nineforce.ecom.csvparser.NFAccountTypeEnum;
 
 class NFAccountEnumTest {
 
+	public static Logger logger = (Logger) LoggerFactory.getLogger(NFAccountEnumTest.class);
+	
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 	}
@@ -56,10 +63,11 @@ class NFAccountEnumTest {
 	@Test
 	final void testGetEnumTypeByString() {
 		NFAccountEnum a = NFAccountEnum.getEnumType("2018FebMonthlyTransaction-Amazon-AD.csv");
-		System.out.println("in test " + a);
+		logger.debug("in test " + a);
 		assertEquals(a, NFAccountEnum.AMZN_AD);
+		
+		a = NFAccountEnum.getEnumType("./AprTxn/pp-tqs-2018-04-alltxn.CSV");
+		logger.debug("in test " + a);
+		assertEquals(a, NFAccountEnum.PP_TQS);
 	}
-	
-	
-	
 }
