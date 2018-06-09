@@ -1,5 +1,8 @@
 package com.nineforce.ecom.csvparser;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Paypal type in the all transaction report. Since we are only in US selling, no i18n. 
  * 
@@ -19,6 +22,8 @@ public enum PaypalTxnTypeEnum {
 	PAYMENT_REFUND("Payment Refund"),
 	ERROR("Error");
 	
+	public static Logger logger = (Logger) LoggerFactory.getLogger(PaypalTxnTypeEnum.class);
+	
 	int KNOWN_TYPE_NUM = 5;  //
 	
 	
@@ -32,6 +37,16 @@ public enum PaypalTxnTypeEnum {
 		return this.typeName;
 	}
 
-
+	
+	static public PaypalTxnTypeEnum getEnumType(String strType) {
+		
+		for (PaypalTxnTypeEnum p : PaypalTxnTypeEnum.values()) {
+			if(strType.equals(p.getTypeName()))
+				return p; 
+		}
+		
+		logger.error("ERROR type[{}]",  strType);
+		return PaypalTxnTypeEnum.ERROR;
+	}
 
 }

@@ -80,7 +80,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
 	 * 
 	 * @return 
 	 */
-	private void initOutputFile() {
+	 public void initOutputFile() {
 		int lastDotIndex = csvInputFile.lastIndexOf('.');
 		xlsxOutputFile = csvInputFile.substring(0, lastDotIndex) + ".xlsx";
 		
@@ -252,7 +252,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		this.enumAccount = enumAccount;
 		this.cogs = cogs;
 		
-		initOutputFile();
+		// call separately ..  initOutputFile();
 	}
 	
 	public static  boolean isEnglishLocale(Locale aLocale) {
@@ -487,6 +487,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
     		System.out.println("find NFAccountEnum from file name:" + nfAcct);
     		
     		parser.setCOGS(nfAcct,  cogs);
+    		parser.initOutputFile();
 
     		parser.parseFile();
     		parser.displaySummary();

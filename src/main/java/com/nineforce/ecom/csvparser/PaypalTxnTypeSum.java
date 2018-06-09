@@ -4,27 +4,38 @@ public class PaypalTxnTypeSum {
 
 	PaypalTxnTypeEnum txnType; 
 	int totalTxnCnt;
-	double totalTxnAmt;  //Currency only has symbols. Use double for amount 
+	double totalTxnGross, totalTxnFee, totalTxnNet;  //Currency only has symbols. Use double for amount 
 	
 	public PaypalTxnTypeSum(PaypalTxnTypeEnum aTxnType) {
 		this.txnType = aTxnType; 
 		totalTxnCnt = 0;
-		totalTxnAmt = 0;
+		totalTxnGross = 0;
+		totalTxnFee = 0;
+		totalTxnNet = 0;
 	}
 	
 	public void increaseTxnCnt() {
 		totalTxnCnt++;
 	}
 	
-	public void addTxnAmt(double mnt) {
-		totalTxnAmt = totalTxnAmt + mnt; 
+	public void addTxnGross(double mnt) {
+		totalTxnGross = totalTxnGross + mnt; 
+	}
+	public void addTxnFee(double mnt) {
+		totalTxnFee = totalTxnFee + mnt; 
+	}
+	public void addTxnNet(double mnt) {
+		totalTxnNet = totalTxnNet + mnt; 
 	}
 	
 	public int getTotalTxnCnt() { return totalTxnCnt;}
-	public double getTotalTxnAmt() { return totalTxnAmt;}	
+	public double getTotalTxnGross() { return totalTxnGross;}	
+	public double getTotalTxnFee() { return totalTxnFee;}	
+	public double getTotalTxnNet() { return totalTxnNet;}	
 	
 	public String toString() {
-		return "Paypal Total Txn " + totalTxnCnt + ", and Total Amount " + totalTxnAmt;
+		return txnType + " Paypal Total Txn number " + totalTxnCnt + ", and Total Gross " + totalTxnGross + 
+				", and Total Fee " + totalTxnFee + ", total Net " + totalTxnNet;
 	}
 	
 	

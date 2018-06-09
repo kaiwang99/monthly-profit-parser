@@ -110,6 +110,7 @@ public class CSVMonthlyTxn {
     			}
     			
     			parser.setCOGS(nfAcct, cogs);
+    			parser.initOutputFile();
     			parser.parseFile();
     			parser.displaySummary();
     		}

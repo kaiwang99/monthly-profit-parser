@@ -16,7 +16,7 @@ public interface NFcsvParser {
 	/**
 	 * Set COGS and account for order/sku/ASIN level profit. 
 	 * However, if it is not set or to null, parser should still generate summary of each type,
-	 * even though less usefull
+	 * even though less useful
 	 * 
 	 * @param enumAccount
 	 * @param cogs
@@ -31,4 +31,7 @@ public interface NFcsvParser {
 	//public void setLocale(Locale locale);
 	
 	public void displaySummary();
+
+
+	public void initOutputFile();
 }

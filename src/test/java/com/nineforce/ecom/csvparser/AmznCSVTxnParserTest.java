@@ -80,6 +80,7 @@ class AmznCSVTxnParserTest {
 	@Test
 	void testInitOutputFile() {
 		parser.setCOGS(NFAccountEnum.AMZN_AD, cogs);
+		parser.initOutputFile();
 		// above invoeks parser.initOutputFile();
 		
 		String xlsx = SAMPLE_CSV_FILE_PATH.replace("csv", "xlsx");
