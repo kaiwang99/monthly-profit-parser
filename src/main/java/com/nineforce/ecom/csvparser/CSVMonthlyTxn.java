@@ -95,6 +95,8 @@ public class CSVMonthlyTxn {
     		for(String aFile : sourceFiles) {
     			
     			NFAccountEnum nfAcct = NFAccountEnum.getEnumType(aFile);
+    			logger.debug("File [{}] get NFAccountEnum is [{}]", aFile, nfAcct);
+    			
     			if (nfAcct == null) continue; 
     			
     			System.out.println("parsing for "+ nfAcct);
@@ -128,7 +130,7 @@ public class CSVMonthlyTxn {
     		
     		System.out.println("=========running  ===========\n");
     		
-    		CSVMonthlyTxn mon = new CSVMonthlyTxn("AprTxn");
+    		CSVMonthlyTxn mon = new CSVMonthlyTxn("MayTxn");
     		mon.parseFileInDir();
     }
     

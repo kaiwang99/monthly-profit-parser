@@ -69,5 +69,10 @@ class NFAccountEnumTest {
 		a = NFAccountEnum.getEnumType("./AprTxn/pp-tqs-2018-04-alltxn.CSV");
 		logger.debug("in test " + a);
 		assertEquals(a, NFAccountEnum.PP_TQS);
+		
+		a = NFAccountEnum.getEnumType("./AprTxn/2018MayMonthlyTransaction-Amazon-TQS-US.csv");
+		logger.debug("in test " + a);
+		assertEquals(a, NFAccountEnum.AMZN_TQS);
+		
 	}
 }

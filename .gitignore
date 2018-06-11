@@ -5,6 +5,7 @@
 .classpath
 .project
 *.xlsx
+log*.txt
 
 
 # Generated files
@@ -13,4 +14,6 @@
 /fba-returns-backup/
 /AprTxn/
 /FebTxn/
+/MayTxn/
+/JunTxn/
 /src/main/resources/*.csv

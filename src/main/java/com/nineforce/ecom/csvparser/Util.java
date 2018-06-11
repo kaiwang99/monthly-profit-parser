@@ -103,4 +103,10 @@ public class Util {
 		}
 		return currency;
 	}
+	
+	// round to 2 digits after decimal 
+	public static double round(double num) {
+		return Math.round(num*100)/100.00;
+	}
+	
 }

@@ -1,5 +1,8 @@
 package com.nineforce.ecom.csvparser;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -7,6 +10,8 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * I don't know whether it is a good idea to have base class. 
@@ -31,6 +36,8 @@ public abstract class NFCsvTxnParser implements NFcsvParser {
 	
 	NFAccountEnum enumAccount;
 	COGS cogs;
+	
+	public static Logger logger = (Logger) LoggerFactory.getLogger(NFCsvTxnParser.class);
 	
 	
 	NFCsvTxnParser(String csvFile) {
@@ -73,7 +80,9 @@ public abstract class NFCsvTxnParser implements NFcsvParser {
 	
 	/**
 	 * Write out the header line after summary section by the csv record, 
-	 * adding COGS and Net two columns. 
+	 * adding COGS and Net two columns.  
+	 * 
+	 * PaypalCSVTnxParser overwrite this function - need add SKU column. 
 	 * 
 	 * @param hdrMap
 	 */
@@ -90,6 +99,23 @@ public abstract class NFCsvTxnParser implements NFcsvParser {
 		cellid = hdrMap.size();
 		cell = row.createCell(cellid++); cell.setCellValue("CGOS");
 		cell = row.createCell(cellid++); cell.setCellValue("Nets");
+	}
+	
+	void closeOutputFile() {
+		logger.debug("close output file:{}", xlsxOutputFile);
+	    FileOutputStream out;
+		try {
+			out = new FileOutputStream(new File(xlsxOutputFile));
+		      workbook.write(out);
+		      out.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 	
 	

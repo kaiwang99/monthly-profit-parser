@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.javafx.scene.paint.GradientUtils.Parser;
 
+import static com.nineforce.ecom.csvparser.Util.*;
+
+
 // parse amazon csv file from reports. mostly use for the month for bonus calculation
 // Hold data in csvRecord and also by type in enummap 
 
@@ -229,10 +232,6 @@ public class AmznCSVTxnParser implements NFcsvParser {
 
 	}
 	
-	double round(double num) {
-		return Math.round(num*100)/100.00;
-	}
-	
 	public int getParsedRecordCnt() {
 		int sum = 0;
 		Iterator<AmznTxnTypeEnum> enumKeySet = txnByTypes.keySet().iterator();
@@ -291,7 +290,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
      * Since non-US file use withFirstRecordAsHeader(), the parser doesn't give the header. 
      * Need to get it for output file. 
      * 
-     * Just some redundaten code. 
+     * Just some redundent code. 
      * 
    
     CSVRecord getHeader(File inputFile) {
@@ -333,11 +332,17 @@ public class AmznCSVTxnParser implements NFcsvParser {
         		
         		// a bit hack for en vs. non-en locales
         		if(isUSLocale(curLocale)) {
+        			/* even US need utf-8 for strange buyer names.  
+        			 * US don't have to remove the header comment lines from srouce csv file. 
+        			 * 
         			Reader reader = Files.newBufferedReader(Paths.get(this.csvInputFile));
         			csvParser = new CSVParser(reader, CSVFormat.DEFAULT
             				.withHeader(AmznCsvHeaderEnum.class)
                         .withIgnoreHeaderCase()
                         .withTrim());
+                        */
+            		csvParser = CSVParser.parse(inputFile, Charset.forName("UTF-8"), 
+            				CSVFormat.DEFAULT.withHeader(AmznCsvHeaderEnum.class).withIgnoreHeaderCase().withTrim());
         		} else {
             		csvParser = CSVParser.parse(inputFile, Charset.forName("UTF-8"), 
             				CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());
@@ -418,6 +423,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
             
         }  catch(IOException e) {
         		e.printStackTrace();
+        		logger.error(e.getMessage());
         }
         
         
@@ -469,7 +475,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
 	//private static final String SAMPLE_CSV_FILE_PATH = "./src/main/resources/2018FebMonthlyTransaction-AD.csv";
     
 	
-	private static final String COGS_PATH = "./src/test/resources/COGS.csv";
+	private static final String COGS_PATH = "./MayTxn/COGS.csv";
 	
 	public static void main(String[] args) throws IOException {
     		System.out.println("=========running  ===========\n" + args[0]);
