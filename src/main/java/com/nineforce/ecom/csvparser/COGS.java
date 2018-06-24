@@ -147,11 +147,15 @@ public class COGS {
 			System.out.print("allCOGS.get(a) is null");
 
 		String rootSKU = getRealSKU(sku); // remove __SL, -KWH etc.
+		logger.debug("get SKU for account [{}] for SKU[{}] and real SKU[{}]", a, rootSKU, sku);
 
 		// when pp-wsd or pp-ve, we have to check both account of SKU match.
 		// since on PP, wsd and ve is one account.
 		if (a == NFAccountEnum.PP_VE || a == NFAccountEnum.PP_WSD) {
-			if (allCOGS.get(NFAccountEnum.EBAY_WSD).get(rootSKU) != null)
+			logger.debug("amzn_wad: {}", allCOGS.get(NFAccountEnum.AMZN_WSD) );
+			logger.debug("ebay_ve: {}", allCOGS.get(NFAccountEnum.EBAY_VE));
+			
+			if (allCOGS.get(NFAccountEnum.AMZN_WSD).get(rootSKU) != null)
 				return allCOGS.get(NFAccountEnum.AMZN_WSD).get(rootSKU);
 			else
 				return allCOGS.get(NFAccountEnum.EBAY_VE).get(rootSKU);
@@ -160,7 +164,7 @@ public class COGS {
 		if (a == NFAccountEnum.PP_TQS)
 			a = NFAccountEnum.AMZN_TQS;
 
-		logger.debug("get SKU for account [{}] for SKU[{}]", a, rootSKU);
+
 		HashMap<String, Float> acctMap = allCOGS.get(a);
 		return allCOGS.get(a).get(rootSKU);
 	}
@@ -235,7 +239,7 @@ public class COGS {
 
 	public static void main(String[] args) throws IOException {
 		// COGS cogs = new COGS("./src/main/resources/COGS.csv");
-		COGS cogs = new COGS("./FebTxn/COGS.csv");
+		COGS cogs = new COGS("./MayTxn/COGS.csv");
 		File fileOutput = new File("./src/main/resources/parseCOGS.txt");
 		try {
 			cogs.parse();

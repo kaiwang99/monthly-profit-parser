@@ -23,6 +23,8 @@ public class Util {
 	public static final Locale IT_LOCALE = new Locale("it", "IT");
 	public static final Locale ES_LOCALE = new Locale("es", "ES");
 	
+	public final static double US_SHIP_COST = 3.2; 
+	
 	/**
 	 * Pass in locale and create  localeTypeStr -> stdTypeStr Map
 	 * @param l

@@ -28,8 +28,6 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	//String csvPayPalFile;    //PP file
 	//String csvEbayFile;		// ebay file corresponding. not class variable, only use in parser although 
 	
-	public final static double US_SHIP_COST = 3.2; 
-	
 	EnumMap<PaypalTxnTypeEnum, PaypalTxnTypeSum> txnByTypes;
 	public static Logger logger = (Logger) LoggerFactory.getLogger(PaypalCSVTxnParser.class);
 	
@@ -50,15 +48,41 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 		
 	}
 	
+	/**
+	 * To find ebay-ve from pp-wsd, create overloaded functions. 
+	 * This is for class method to call directly
+	 * @return
+	 */
 	String getPairingEbayCsv() {
-		NFAccountEnum nfAcct = NFAccountEnum.getEnumType(csvInputFile);
+		return getPairingEbayCsv(this.csvInputFile); 
+	}
+	
+	/**
+	 * To find ebay-ve from pp-wsd, create overloaded functions. 
+	 * This is transition method. Nobody will call it at this time. June 2018.
+	 * @param inputPPfile
+	 * @return
+	 */
+	String getPairingEbayCsv(String inputPPfile) {
+		NFAccountEnum nfAcct = NFAccountEnum.getEnumType(inputPPfile);
 		logger.debug("In getPairingEbayCsv(). NFAcct is:{}", nfAcct);
 		String acctName = nfAcct.getAccountName();
 		NFAccountEnum ebayAcctEnum = NFAccountEnum.getEnumType(NFAccountTypeEnum.EBAY, acctName);
 		
+		return getPairingEbayCsv(inputPPfile, ebayAcctEnum);
+	}
+	
+	/**
+	 * To find ebay-ve from pp-wsd, create overloaded functions. 
+	 *  Will call this with pp-wsd file and ebay-ve enum
+	 * @param inputPPfile
+	 * @return
+	 */
+	String getPairingEbayCsv(String inputPPfile, NFAccountEnum ebayAcctEnum) {		
+		
 		logger.debug("Finding corresponding ebay file:{}", ebayAcctEnum);
 		String ebayFile = null; 
-		File  ppFile = new File(csvInputFile);
+		File  ppFile = new File(inputPPfile);
 		File  folder = ppFile.getParentFile();
 		logger.debug("directory of this paypal file:" + folder);
 		
@@ -81,9 +105,10 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
             }
         } 	// end for
         ebayFile = folder.toString() + File.separator + ebayFile;
-		logger.debug("Find ebay file:{} by pp file:{}", ebayFile, csvInputFile);
+		logger.debug("Find ebay file:{} by pp file:{}", ebayFile, inputPPfile);
 		return ebayFile;
 	}
+	
 	
 	void initEnumMap() {
 		txnByTypes = new EnumMap<> (PaypalTxnTypeEnum.class);
@@ -129,6 +154,7 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	}
 	
 	/**
+	 * For pp-wsd, it has both ebay-wsd and ebay-ve transaction. 
 	 * 
 	 */
 	Hashtable<String, String> getTxnSkuMap() {
@@ -271,6 +297,23 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 		
 		}
 	
+	// patch for wsd and ve share same PP file
+	void addVESku(Hashtable<String, String> txnSkuMap) {
+		NFAccountEnum ebayVE = NFAccountEnum.EBAY_VE;
+		String veEbay = getPairingEbayCsv(this.csvInputFile, ebayVE); 
+		
+		Hashtable<String, String> veTxnMap = parseEbayFile(veEbay);
+		Iterator it = veTxnMap.keySet().iterator();
+		
+		while(it.hasNext()) {
+			String aTxn = (String)it.next();
+			String aSku =veTxnMap.get(aTxn); 
+			txnSkuMap.put(aTxn,  aSku);
+		}
+		
+		logger.info("Added {} txn,sku pair for VE", veTxnMap.size());
+	}
+	
 	/**
 	 * Write content of xlsx, line by line
 	 * 1) Header: add Custom Label, COGS and Net
@@ -283,6 +326,10 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	 */
 	void writeOutItemLine(CSVRecord csvRecord, PaypalTxnTypeEnum typeEnum, double grossNet) {
 		Hashtable<String, String> txnSkuMap = getTxnSkuMap();
+		
+		// if pp-wsd, then need to add ve's txn-sku map 
+		if (enumAccount == NFAccountEnum.PP_WSD) 
+			addVESku(txnSkuMap);
 		
 		XSSFRow row = spreadsheet.createRow(rowid++);
 		int cellid = 0;
@@ -385,9 +432,13 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	}
 	
 
-	private static final String COGS_PATH = "./src/main/resources/COGS_v2.csv";  //for testing in main
-	private static final String ppTestFile = "./MayTxn/pp-tqs-201805.CSV";
+	private static final String COGS_PATH = "./MayTxn/COGS.csv";  //for testing in main
+	private static final String ppTestFile = "./MayTxn/ebay/pp-wsd.CSV";
 	
+	/**
+	 * @param args
+	 * @throws IOException
+	 */
 	public static void main(String[] args) throws IOException {
 		System.out.println("=========running  ===========" + ppTestFile); 	// + args[0]);
 		logger.debug("=========running  ==========={}", ppTestFile);

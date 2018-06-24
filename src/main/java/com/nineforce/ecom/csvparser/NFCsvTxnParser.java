@@ -49,6 +49,8 @@ public abstract class NFCsvTxnParser implements NFcsvParser {
 	// each subclass init its own type enum and create this map
 	abstract void initEnumMap();
 	
+	public String getCsvInputFile() { return this.csvInputFile;}
+	
 	
 	public void setCOGS(NFAccountEnum enumAccount, COGS cogs) {
 		this.enumAccount = enumAccount;
