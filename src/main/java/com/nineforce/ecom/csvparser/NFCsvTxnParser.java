@@ -100,6 +100,7 @@ public abstract class NFCsvTxnParser implements NFcsvParser {
 		}
 		cellid = hdrMap.size();
 		cell = row.createCell(cellid++); cell.setCellValue("CGOS");
+		cell = row.createCell(cellid++); cell.setCellValue("Shipping");
 		cell = row.createCell(cellid++); cell.setCellValue("Nets");
 	}
 	

@@ -1,5 +1,9 @@
 package com.nineforce.ecom.csvparser;
 
+import static com.nineforce.ecom.csvparser.Util.US_LOCALE;
+import static com.nineforce.ecom.csvparser.Util.US_SHIP_COST;
+import static com.nineforce.ecom.csvparser.Util.round;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -9,6 +13,8 @@ import java.util.List;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,12 +31,16 @@ public class WmtCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	EnumMap<PaypalTxnTypeEnum, PaypalTxnTypeSum> txnByTypes;
 	
 	double totalCOGS = 0.0;
-	double totalNetFromEbay =  0.0; 
-	double totalShipping = 0.0;
-	double monthlyNetForBonus = 0.0;
-	
+	//double totalNetFromEbay =  0.0; 
+	double totalGross = 0.0;
+	double totalShippingCharge = 0.0;
+	double totalTax = 0.0;
 	double totalCommission = 0.0;
 	double totalCancel = 0.0;
+	double totalShippingPaid = 0.0;
+	double totalNet = 0.0;
+	
+	double monthlyNetForBonus = 0.0;
 	
 	
 	public WmtCSVTxnParser(String csvFile) {
@@ -129,36 +139,157 @@ public class WmtCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 		logger.debug("In parseFile() {}. Total records:{}", csvInputFile, csvRecords.size());
 		
         for (CSVRecord csvRecord : csvRecords) {
-        		String type = csvRecord.get("Type");
+        		String strSKU = csvRecord.get("SKU");
 
-        		String strGross = csvRecord.get("Gross");
-        		String strFee = csvRecord.get("Fee");
-        		String strNet = csvRecord.get("Net");
-        		double gross = Double.parseDouble(strGross);
-        		double fee = Double.parseDouble(strFee);
-        		double grossNet = Double.parseDouble(strNet);
+        		String strGross = csvRecord.get("Item Cost");
+        		//String strFee = csvRecord.get("Fee");  wmt fees in anothe file
+        		String strShippingCharge = csvRecord.get("Shipping Cost");
+        		String strTax = csvRecord.get("Tax");
         		
+        		double gross = Double.parseDouble(strGross);
+        		double shippingCharge = Double.parseDouble(strShippingCharge);
+        		double tax = Double.parseDouble(strTax);
+        		
+        		/*
         		PaypalTxnTypeEnum curTypeEnum = PaypalTxnTypeEnum.getEnumType(type);
         		PaypalTxnTypeSum curTypeSum = txnByTypes.get(curTypeEnum);
         		
+
         		//statics 
         		curTypeSum.increaseTxnCnt();
         		curTypeSum.addTxnGross(gross);
         		curTypeSum.addTxnFee(fee);
         		curTypeSum.addTxnGrossNet(grossNet);
+        		*/
         		
-        //		writeOutItemLine(csvRecord, curTypeEnum, grossNet);
+        		//WMT source file has no type.We can still create type and TypeEunmSum, 
+        		// but not do it right now
+        		
+        		totalGross += gross;
+        		totalShippingCharge += shippingCharge;
+        		totalTax += tax;
+        		
+        		
+        		writeOutItemLine(csvRecord, gross);
         }
         
-      //  writeOutSummary();
+        writeOutSummary();
         closeOutputFile();
         
       } catch(Exception e) {
     	  	e.printStackTrace();
       }
   		
-		return 0;
+      return 0;
 	}
+	
+	
+	//Write out summary section
+	void writeOutSummary() {
+		Cell cell = null;
+		int topRowid = 1;
+			
+
+		frontRow[topRowid].createCell(0); 
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Total Gross");
+		cell = frontRow[topRowid].createCell(2); cell.setCellValue(round(totalGross));
+		topRowid++;
+		
+		frontRow[topRowid].createCell(0); 
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Total Tax");
+		cell = frontRow[topRowid].createCell(2); cell.setCellValue(round(totalTax));
+		topRowid++;
+
+		frontRow[topRowid].createCell(0); 
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Total Commission");
+		cell = frontRow[topRowid].createCell(2); cell.setCellValue(round(totalCommission));
+		topRowid++;
+		
+		frontRow[topRowid].createCell(0); 
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Total Cancel");
+		cell = frontRow[topRowid].createCell(2); cell.setCellValue(round(totalCancel));
+		topRowid++;
+
+		frontRow[topRowid].createCell(0); 
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Total Shipping Charge");
+		cell = frontRow[topRowid].createCell(2); cell.setCellValue(round(totalShippingCharge));
+		topRowid++;
+
+		frontRow[topRowid].createCell(0); 
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Total Shipping Paid");
+		cell = frontRow[topRowid].createCell(2); cell.setCellValue(round(totalShippingPaid));
+		topRowid++;
+		
+		frontRow[topRowid].createCell(0); 
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Total COGS");
+		cell = frontRow[topRowid].createCell(2); cell.setCellValue(round(totalCOGS));
+		topRowid++;
+			
+		double totalNetFromWmt = totalGross + totalShippingCharge - 
+					(totalCommission + totalCancel + totalShippingPaid + totalCOGS);
+		frontRow[topRowid].createCell(0); 
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Total Net From WMT");
+		cell = frontRow[topRowid].createCell(2); cell.setCellValue(round(totalNetFromWmt));
+		topRowid++;
+		topRowid++;
+		
+		monthlyNetForBonus = totalNetFromWmt;
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Monthly Total For Bonus");
+		cell = frontRow[topRowid].createCell(2); cell.setCellValue(round(monthlyNetForBonus));
+		cell = frontRow[topRowid].createCell(3); cell.setCellValue(Util.currencyByLocale(US_LOCALE));
+		
+		cell = frontRow[topRowid].createCell(5); cell.setCellValue("Bonus");
+		cell = frontRow[topRowid].createCell(6); 
+		cell.setCellValue(round(monthlyNetForBonus * Util.BONUS_RATE));
+		
+		cell = frontRow[topRowid].createCell(8); cell.setCellValue("ExchgRate");
+		cell = frontRow[topRowid].createCell(9); cell.setCellValue(Util.getCurrentRate(US_LOCALE));
+		
+		cell = frontRow[topRowid].createCell(10); 
+		cell.setCellValue(round(monthlyNetForBonus *  Util.BONUS_RATE * Util.getCurrentRate(US_LOCALE)));
+		cell = frontRow[topRowid].createCell(11); cell.setCellValue("RMB");
+		
+		//Warn TQS-EU and US about ads-cost
+		topRowid++;
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Possible FVF exense on credit card");
+		
+		
+	}
+	
+	/**
+	 * Write out line. 
+	 * 
+	 * @param csvRecord
+	 * @param gross
+	 */
+	void writeOutItemLine(CSVRecord csvRecord,  double gross) {
+		
+		String strSKU = csvRecord.get("SKU");
+		double skuCOGS_RMB = cogs.getCOGS	(enumAccount, strSKU);
+		double skuCOGS_Loc = (float) (skuCOGS_RMB/Util.getCurrentRate(Util.US_LOCALE));
+		double net = gross - skuCOGS_Loc - US_SHIP_COST;	
+		
+		XSSFRow row = spreadsheet.createRow(rowid++);
+		int cellid = 0;
+		Cell cell = null;
+		
+		for (cellid=0; cellid<csvRecord.size(); cellid++) {
+            cell = row.createCell(cellid);
+            cell.setCellValue(csvRecord.get(cellid));
+         }
+		
+        cell = row.createCell(cellid++);
+        cell.setCellValue(round(skuCOGS_Loc));
+        cell = row.createCell(cellid++);
+        cell.setCellValue(US_SHIP_COST);			//shipping avg about $3.2
+        cell = row.createCell(cellid++);
+        cell.setCellValue(round(net));
+        
+        totalCOGS += skuCOGS_Loc;
+        totalShippingPaid += US_SHIP_COST;
+        totalNet += net;
+	}
+	
 	
 	
 	
@@ -166,7 +297,7 @@ public class WmtCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	private static final String wmtTestFile = "./MayTxn/From_XM/PO_Data_2018-06-08_03_31_58PST-Walmart-TQS-txn.csv";
 
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		logger.debug("=========running  ==========={}", wmtTestFile);
 		
 		COGS cogs = new COGS(COGS_PATH);
@@ -184,7 +315,7 @@ public class WmtCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 		parser.setCOGS(nfAcct,  cogs);
 		parser.initOutputFile();
 		
-		//parser.parseFile();		//parse PP file and create output .xlsx
+		parser.parseFile();		//parse PP file and create output .xlsx
 		
 	}
 

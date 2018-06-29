@@ -161,7 +161,7 @@ public class COGS {
 				return allCOGS.get(NFAccountEnum.EBAY_VE).get(rootSKU);
 		}
 
-		if (a == NFAccountEnum.PP_TQS)
+		if (a == NFAccountEnum.PP_TQS || a == NFAccountEnum.WMT_TQS)
 			a = NFAccountEnum.AMZN_TQS;
 
 
