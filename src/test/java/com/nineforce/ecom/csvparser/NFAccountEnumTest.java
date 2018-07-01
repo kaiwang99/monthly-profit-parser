@@ -74,5 +74,9 @@ class NFAccountEnumTest {
 		logger.debug("in test " + a);
 		assertEquals(a, NFAccountEnum.AMZN_TQS);
 		
+		a = NFAccountEnum.getEnumType("./MayTxn/FileExchange_Response_43979201-eBay-WSD.csv");
+		logger.debug("in test " + a);
+		assertEquals(a, NFAccountEnum.EBAY_WSD);
+		
 	}
 }

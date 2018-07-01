@@ -99,20 +99,24 @@ public class CSVMonthlyTxn {
     			
     			if (nfAcct == null) continue; 
     			
+    			String fullSourcePath = sourceDir + File.separator + aFile;
     			System.out.println("parsing for "+ nfAcct);
     			//TODO parent parse or interface, then do the parse
     			
     			switch (nfAcct.getAccountType()) {
-    				case AMZN: parser = new AmznCSVTxnParser(sourceDir + File.separator + aFile); break;
-    				case PP:   			break;
-    				case EBAY:    break; // parsed by PP;
-    				case WMT:
+    				case AMZN: parser = new AmznCSVTxnParser(fullSourcePath); break;
+    				case PP:   parser = new PaypalCSVTxnParser(fullSourcePath); break;
+    				case EBAY: continue;    // no need for ebay. parsed by PP;
+    				case WMT:  parser = new WmtCSVTxnParser(fullSourcePath); break;
     				case ETSY:
     				default: System.out.println(" TO BE DONE");
     			}
     			
     			parser.setCOGS(nfAcct, cogs);
     			parser.initOutputFile();
+    			
+    			logger.info("\n\n\n========================================\nParse {}\n{}\n=============================\n", 
+    					fullSourcePath, parser);
     			parser.parseFile();
     			parser.displaySummary();
     		}
