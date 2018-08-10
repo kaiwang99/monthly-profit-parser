@@ -100,13 +100,13 @@ public class CSVMonthlyTxn {
     			if (nfAcct == null) continue; 
     			
     			String fullSourcePath = sourceDir + File.separator + aFile;
-    			System.out.println("parsing for "+ nfAcct);
+    			System.out.println("Will parse for "+ nfAcct + ". File " + aFile);
     			//TODO parent parse or interface, then do the parse
     			
     			switch (nfAcct.getAccountType()) {
     				case AMZN: parser = new AmznCSVTxnParser(fullSourcePath); break;
     				case PP:   parser = new PaypalCSVTxnParser(fullSourcePath); break;
-    				case EBAY: continue;    // no need for ebay. parsed by PP;
+    				case EBAY: logger.debug("Not parse ebay {}. Parse PP", nfAcct); continue;    // no need for ebay. parsed by PP;
     				case WMT:  parser = new WmtCSVTxnParser(fullSourcePath); break;
     				case ETSY:
     				default: System.out.println(" TO BE DONE");
@@ -134,7 +134,7 @@ public class CSVMonthlyTxn {
     		
     		System.out.println("=========running  ===========\n");
     		
-    		CSVMonthlyTxn mon = new CSVMonthlyTxn("MayTxn");
+    		CSVMonthlyTxn mon = new CSVMonthlyTxn("JulyTxn/study");
     		mon.parseFileInDir();
     }
     

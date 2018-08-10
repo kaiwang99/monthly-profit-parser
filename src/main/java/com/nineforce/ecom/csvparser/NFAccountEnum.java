@@ -20,9 +20,11 @@ public enum NFAccountEnum {
 	PP_WSD(PP, "wsd"),
 	PP_VE(PP, "ve"),
 	
-	WMT_TQS(WMT, "tqs"),
-	ETSY_TQS(ETSY, "tqs");   //this by SKU association even "WishDesigned" name.
+	WMT_TQS(WMT, "tqs");
 	
+	//ETSY_TQS(ETSY, "tqs");   //this by SKU association even "WishDesigned" name.
+	
+	static String WMT_FEE = "FEE";   //skip Walmart-TQS-fees file name
 	
 	final String accountName;
 	final NFAccountTypeEnum accountType;
@@ -76,7 +78,11 @@ public enum NFAccountEnum {
 		String upperAString = aString.toUpperCase();
 		
 		for(NFAccountEnum a: NFAccountEnum.values()) {
-			String upperAcctStr = a.toString().toUpperCase();			
+			String upperAcctStr = a.toString().toUpperCase();		
+			
+			if(upperAString.contains(WMT_FEE))
+				continue; 
+			
 			if(upperAString.contains(upperAcctStr)) 
 				return a;
 		}

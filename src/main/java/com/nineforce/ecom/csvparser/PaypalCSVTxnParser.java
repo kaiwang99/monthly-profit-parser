@@ -419,6 +419,17 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
             			((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnFee(),
             			((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnGrossNet());
             
+            if (curTxnType == PaypalTxnTypeEnum.ERROR   &&
+            		((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnCnt() > 0) {
+            		String errorStr = "\n================================\n" + 
+            						  "=== Has Error "  +  
+            						  ((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnCnt()  + 
+            						  "         ===\n" +
+            						  "================================\n";
+            		//System.out.println(errorStr);
+            		logger.error(errorStr);
+            }
+            
 	        Object[] paramArray = {curTxnType,  
         			((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnCnt(), 
         			((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnGross(), 
@@ -432,8 +443,9 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	}
 	
 
-	private static final String COGS_PATH = "./MayTxn/COGS.csv";  //for testing in main
-	private static final String ppTestFile = "./MayTxn/ebay/pp-wsd.CSV";
+	private static final String COGS_PATH = "./JunTxn/COGS.csv";  //for testing in main
+	//private static final String ppTestFile = "./MayTxn/ebay/pp-wsd.CSV";
+	private static final String ppTestFile = "./JunTxn/pp-test/pp-ss.CSV";
 	
 	/**
 	 * @param args

@@ -78,5 +78,9 @@ class NFAccountEnumTest {
 		logger.debug("in test " + a);
 		assertEquals(a, NFAccountEnum.EBAY_WSD);
 		
+		a = NFAccountEnum.getEnumType("./JunTxn/pp-ss.CSV");
+		logger.debug("in test " + a);
+		assertEquals(a, NFAccountEnum.PP_SS);
+		
 	}
 }

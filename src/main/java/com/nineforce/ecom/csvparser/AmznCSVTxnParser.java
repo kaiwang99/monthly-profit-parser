@@ -359,7 +359,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
         		
             // create enumMap by its xxxTxnType
         		List<CSVRecord> csvRecords = csvParser.getRecords();    
-        		System.out.println("In parseFile()"  + csvInputFile + ". Total records:" + csvRecords.size());
+        		System.out.println("In parseFile() "  + csvInputFile + ". Total records:" + csvRecords.size());
         		logger.debug("In parseFile() {}. Total records:{}", csvInputFile, csvRecords.size());
         		
             for (CSVRecord csvRecord : csvRecords) {

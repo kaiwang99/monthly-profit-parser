@@ -39,19 +39,22 @@ import org.slf4j.LoggerFactory;
 
 // now only hold SKU, Account, Price in RMB
 public class COGS {
-
+	
+	final  static  float DEFAULT_SKU_COST = 33; 		//used this when no sku found. So we won't stop running. 
+	
 	final static String SL_SUFFIX = "__SL";
 	final static String SL_SUFFIX2 = "_SL"; // single _
 	final static String KWH_SUFFIX = "-KWH";
 	final static String NC_SUFFIX = "-NC";
 	final static String CESL_SUFFIX = "-CE__SL";
 	final static String A_SUFFIX = "_A";
+	final static String CN_SUFFIX = "-CN";
 	final static String GIFT_SUFFIX = "_Gift";
-	
+
 	final static String RCTOP_PREFIX = "RC_TOP";
 	final static String RCUND_PREFIX = "RC_UND";
-	
-	// this will be not used  TODO
+
+	// this will be not used TODO
 	final static String ONE_SUFFIX = "-1";
 
 	HashMap<NFAccountEnum, HashMap<String, Float>> allCOGS;
@@ -152,23 +155,47 @@ public class COGS {
 		// when pp-wsd or pp-ve, we have to check both account of SKU match.
 		// since on PP, wsd and ve is one account.
 		if (a == NFAccountEnum.PP_VE || a == NFAccountEnum.PP_WSD) {
-			logger.debug("amzn_wad: {}", allCOGS.get(NFAccountEnum.AMZN_WSD) );
-			logger.debug("ebay_ve: {}", allCOGS.get(NFAccountEnum.EBAY_VE));
-			
+			// logger.debug("amzn_wad: {}", allCOGS.get(NFAccountEnum.AMZN_WSD) );
+			// logger.debug("ebay_ve: {}", allCOGS.get(NFAccountEnum.EBAY_VE));
+
 			if (allCOGS.get(NFAccountEnum.AMZN_WSD).get(rootSKU) != null)
 				return allCOGS.get(NFAccountEnum.AMZN_WSD).get(rootSKU);
 			else
-				return allCOGS.get(NFAccountEnum.EBAY_VE).get(rootSKU);
+				if (allCOGS.get(NFAccountEnum.EBAY_VE).get(rootSKU) != null)
+					return allCOGS.get(NFAccountEnum.EBAY_VE).get(rootSKU);
+				else {
+					recordNullSKU(a, rootSKU);
+					//TODO  take a number and see... 
+					return DEFAULT_SKU_COST;
+				}
+					
 		}
 
 		if (a == NFAccountEnum.PP_TQS || a == NFAccountEnum.WMT_TQS)
 			a = NFAccountEnum.AMZN_TQS;
 
+		if (a == NFAccountEnum.PP_SS)
+			a = NFAccountEnum.EBAY_SS;
 
 		HashMap<String, Float> acctMap = allCOGS.get(a);
-		return allCOGS.get(a).get(rootSKU);
+		
+		if (acctMap.get(rootSKU) != null)
+			return acctMap.get(rootSKU);
+		else 
+			return DEFAULT_SKU_COST;
 	}
 
+	
+	/**
+	 * Now, only write to log. We can create a file in the future
+	 * TODO
+	 * For ebay combined orders, 
+	 */
+	public void recordNullSKU(NFAccountEnum nfa, String aSKU) {
+		logger.warn("When parsing for account[{}], SKU [{}] cannot be found.", nfa, aSKU);
+	}
+	
+	
 	/**
 	 * Remove __SL, _SL, -KWH etc. to get real SKU 6-100068221-2002-98210010-CE__SL,
 	 * shall I do recursive or just test? Jsut test now.
@@ -178,7 +205,7 @@ public class COGS {
 	 */
 	public static String getRealSKU(String sku) {
 		String realSKU = sku;
-		
+
 		// RC TOP and UND
 		if (sku.startsWith(RCTOP_PREFIX)) {
 			return sku.replaceFirst("_TOP", "_SWM");
@@ -186,7 +213,6 @@ public class COGS {
 		if (sku.startsWith(RCUND_PREFIX)) {
 			return sku.replaceFirst("_UND", "_SWM");
 		}
-		
 
 		// long suffix to start. Otherwise, shrot one returns directly.
 		if (sku.endsWith(GIFT_SUFFIX)) {
@@ -214,7 +240,10 @@ public class COGS {
 		if (sku.endsWith(ONE_SUFFIX)) {
 			return sku.substring(0, sku.length() - ONE_SUFFIX.length());
 		}
-		
+		if (sku.endsWith(CN_SUFFIX)) {
+			return sku.substring(0, sku.length() - CN_SUFFIX.length());
+		}
+
 		return realSKU;
 	}
 

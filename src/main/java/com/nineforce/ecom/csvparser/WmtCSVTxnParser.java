@@ -265,7 +265,7 @@ public class WmtCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	void writeOutItemLine(CSVRecord csvRecord,  double gross) {
 		
 		String strSKU = csvRecord.get("SKU");
-		double skuCOGS_RMB = cogs.getCOGS	(enumAccount, strSKU);
+		double skuCOGS_RMB = cogs.getCOGS(enumAccount, strSKU);
 		double skuCOGS_Loc = (float) (skuCOGS_RMB/Util.getCurrentRate(Util.US_LOCALE));
 		double net = gross - skuCOGS_Loc - US_SHIP_COST;	
 		
@@ -293,8 +293,8 @@ public class WmtCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	
 	
 	
-	private static final String COGS_PATH = "./MayTxn/COGS.csv";  //for testing in main
-	private static final String wmtTestFile = "./MayTxn/From_XM/PO_Data_2018-06-08_03_31_58PST-Walmart-TQS-txn.csv";
+	private static final String COGS_PATH = "./JunTxn/COGS.csv";  //for testing in main
+	private static final String wmtTestFile = "./JunTxn/pp-test/PO_Data_2018-07-05_04_01_51PST-Walmart-TQS.csv";
 
 	
 	public static void main(String[] args) throws IOException {
