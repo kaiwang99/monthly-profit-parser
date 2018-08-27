@@ -134,7 +134,7 @@ public class CSVMonthlyTxn {
     		
     		System.out.println("=========running  ===========\n");
     		
-    		CSVMonthlyTxn mon = new CSVMonthlyTxn("JulyTxn/study");
+    		CSVMonthlyTxn mon = new CSVMonthlyTxn("JulyTxn");
     		mon.parseFileInDir();
     }
     

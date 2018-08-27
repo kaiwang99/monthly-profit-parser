@@ -21,7 +21,9 @@ import java.util.ResourceBundle;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -37,15 +39,22 @@ import static com.nineforce.ecom.csvparser.Util.*;
 // Hold data in csvRecord and also by type in enummap 
 
 public class AmznCSVTxnParser implements NFcsvParser {
-	final int SUMMARY_LEN = 16;   //summar section of the xlsx file
+	final int SUMMARY_LEN = 18;   //summar section of the xlsx file
 	final String HEADER = "header";   // just a flage to indicate header of csv.
 	public static Logger logger = (Logger) LoggerFactory.getLogger(AmznCSVTxnParser.class);
+	
+	//  Excel sections starting 
+	final int EXCEL_START_LINE = 1;
+	final int STMT_START_COL = 7;
+	final int BONUS_START_COL = 15;
 	
 	String csvInputFile;
 	String xlsxOutputFile;
 	XSSFWorkbook workbook;
 	XSSFSheet spreadsheet;
 	int rowid;
+	XSSFCellStyle style6; 
+	
 	Locale curLocale; 
 	HashMap<String, String> locTypeStdTypeMap;
 	
@@ -55,6 +64,8 @@ public class AmznCSVTxnParser implements NFcsvParser {
 	
 	float totalCOGS = (float) 0.0;
 	float totalNet = (float) 0.0; 
+	float totalSold = (float) 0.0;
+	
 	
 	EnumMap<AmznTxnTypeEnum, AmznTxnTypeSum> txnByTypes;
 	private ResourceBundle messages; 
@@ -96,6 +107,12 @@ public class AmznCSVTxnParser implements NFcsvParser {
 			frontRow[i] = spreadsheet.createRow(i);
 		
 		rowid = SUMMARY_LEN;
+		
+		style6 = workbook.createCellStyle();
+	      style6.setFillBackgroundColor(
+	      HSSFColor.LEMON_CHIFFON.index );
+	      style6.setFillPattern(XSSFCellStyle.LEAST_DOTS);
+	      style6.setAlignment(XSSFCellStyle.ALIGN_FILL);
 	}
 	
 	
@@ -156,26 +173,34 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		         cell = row.createCell(cellid++);
 		         cell.setCellValue(net);
 		         
+		         totalSold += total;
 		         totalCOGS += skuCOGS_Loc;
 		         totalNet += net;
+		         
 			}
 		}
 	}
 	
 		//Write out summary section
+	/**
+	 * 
+	 */
 	void writeOutSummary() {
 		Cell cell = null;
-		
-		frontRow[0].createCell(0); 
-		cell = frontRow[0].createCell(1); cell.setCellValue("Total COGS");
-		cell = frontRow[0].createCell(2); cell.setCellValue(round(totalCOGS));
-		
-		frontRow[1].createCell(0); 
-		cell = frontRow[1].createCell(1); cell.setCellValue("Total Net");
-		cell = frontRow[1].createCell(2); cell.setCellValue(round(totalNet));
-		
-		int topRowid = 2;
+		int topRowid = EXCEL_START_LINE;
 		double monthlyGross = 0.0;
+		double monthlyFees = 0.0;
+		
+		
+		//////////////////////////////////
+		//  Summary By Type 
+		//////////////////////////////////
+		
+		frontRow[topRowid].createCell(0); 
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Summary By Type");
+		cell.setCellStyle(style6);
+		topRowid++; 
+		topRowid++;
 		
 		HashMap<String, String>  stdTypeLocType = Util.getAmznStdTypeLocTypeMap(curLocale);
         Iterator<AmznTxnTypeEnum> enumKeySet = txnByTypes.keySet().iterator();
@@ -184,13 +209,17 @@ public class AmznCSVTxnParser implements NFcsvParser {
         		double amt = ((AmznTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnAmt(); 
         		frontRow[topRowid].createCell(0);  //skip firt col
         		String curTypeStr = curTxnType.getTypeName();
-        		cell = frontRow[topRowid].createCell(1); cell.setCellValue(curTypeStr);
+        		cell = frontRow[topRowid].createCell(1); cell.setCellValue(curTypeStr + "-Cnt");
         		cell = frontRow[topRowid].createCell(2); cell.setCellValue(((AmznTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnCnt());
         		cell = frontRow[topRowid].createCell(3); cell.setCellValue(stdTypeLocType.get(curTypeStr));
         		cell = frontRow[topRowid].createCell(4); cell.setCellValue(round(amt));
         		topRowid++;
         		
-        		if (curTxnType != AmznTxnTypeEnum.TRANSFER)   monthlyGross += amt; 
+        		if (curTxnType != AmznTxnTypeEnum.TRANSFER) {
+        			monthlyGross += amt; 
+        			if (curTxnType != AmznTxnTypeEnum.ORDER) 
+        				monthlyFees += amt;
+        		}
         }
         
         monthlyGross -= totalCOGS;
@@ -213,8 +242,95 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		//Warn TQS-EU and US about ads-cost
         topRowid++;
 		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Possible ad-exense");
+		
+		
+		////////////////////////////////////////////////////////////
+		// write out a small income statement on the right section 
+		////////////////////////////////////////////////////////////
+		
+		topRowid = EXCEL_START_LINE;
+		int colid = STMT_START_COL;
+		cell = frontRow[topRowid].createCell(colid); cell.setCellValue("Small Income Statment");
+		cell.setCellStyle(style6);
+		topRowid++;
+		topRowid++;
+		
+		cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Total Order Sold (Amt)");
+		cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(totalSold);
+		topRowid++;
+		cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Total COGS");
+		cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(round(totalCOGS));
+		topRowid++;
+		cell = frontRow[topRowid].createCell(colid); 		cell.setCellValue("Net Before Fees");
+		cell = frontRow[topRowid].createCell(colid + 2); 		cell.setCellValue(round(totalNet));
+		cell = frontRow[topRowid].createCell(colid + 3); 		cell.setCellValue("[Income from sold order - COGS]");
+		
+		// totalNet - totalFees should equal monthlyGross
+		topRowid++;  
+		topRowid++;
+		cell = frontRow[topRowid].createCell(colid); cell.setCellValue("Total Fees");
+		cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(round(monthlyFees));
+		topRowid++;
+		
+		if (enumAccount == NFAccountEnum.AMZN_TQS) {
+			cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Gross Profit[Before Ad. TQS]");
+			cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(round(totalNet + monthlyFees));
+			
+			topRowid++;
+			topRowid++;
+			cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Ad. Exp.[Credit Card TQS]");
+			cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue("手动添加");
+			cell.setCellStyle(style6);
+			
+			topRowid++;
+			cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Gross Profit [Incl Ad.]");
+			cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue("手动添加");
+			cell.setCellStyle(style6);
+			
+		} else {
+			cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Gross Profit [Incl Ad.]");
+			cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(round(totalNet + monthlyFees));
+			
+			topRowid += 3;    // set to j12, kind of hack, but whole thing is so dependent
+			cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(round(totalNet + monthlyFees));
+		}
+		
+		////////////////////////////////////////////////////////////
+		// write out bonus
+		////////////////////////////////////////////////////////////	
+		topRowid = EXCEL_START_LINE;
+		colid = BONUS_START_COL;
+		cell = frontRow[topRowid].createCell(colid); cell.setCellValue("Bonus Calculation");
+		cell.setCellStyle(style6);
+		topRowid++;
+		topRowid++;
+		
+		cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Gross Profit [Incl Ad.]");
+		cell = frontRow[topRowid].createCell(colid + 2); cell.setCellFormula("j12");
+		topRowid++;
+		
+		cell = frontRow[topRowid].createCell(colid);		cell.setCellValue("Bonus USD");
+		cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(round(monthlyGross * Util.BONUS_RATE));
+		topRowid++;
 
+		cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Rate When Purchase");
+		cell = frontRow[topRowid].createCell(colid + 2); 	cell.setCellValue(Util.getCurrentRate(curLocale));
+		topRowid++;
+		
+		cell = frontRow[topRowid].createCell(colid);		cell.setCellValue("Bonus RMB");
+		cell = frontRow[topRowid].createCell(colid + 2);	cell.setCellValue(round(monthlyGross *  Util.BONUS_RATE * Util.getCurrentRate(curLocale)));
 	}
+	
+	void writeOutSummary_Bonus() {
+		int topRowid = EXCEL_START_LINE;
+		int colid = STMT_START_COL;
+		Cell cell = frontRow[topRowid].createCell(colid); cell.setCellValue("Bonus Calculation");
+		topRowid++;
+		topRowid++;
+		
+		
+	}
+	
 	
 	void closeOutputFile() {
 	    FileOutputStream out;
@@ -476,6 +592,9 @@ public class AmznCSVTxnParser implements NFcsvParser {
     
 	
 	private static final String COGS_PATH = "./MayTxn/COGS.csv";
+	//private static final String TEST_FILE = "./JulyTxn/2018JulMonthlyTransaction-Amazon-TQS-US.csv";
+	private static final String TEST_FILE = "./JulyTxn/2018JulMonthlyTransaction-Amazon-AD.csv";
+
 	
 	public static void main(String[] args) throws IOException {
     		System.out.println("=========running  ===========\n" + args[0]);
@@ -488,8 +607,11 @@ public class AmznCSVTxnParser implements NFcsvParser {
     			e.printStackTrace();
     		}
     		
-    		AmznCSVTxnParser parser = new AmznCSVTxnParser(args[0]);
-    		NFAccountEnum nfAcct = NFAccountEnum.getEnumType(args[0]);
+    		//AmznCSVTxnParser parser = new AmznCSVTxnParser(args[0]);
+    		//NFAccountEnum nfAcct = NFAccountEnum.getEnumType(args[0]);
+    		
+    		AmznCSVTxnParser parser = new AmznCSVTxnParser(TEST_FILE);
+    		NFAccountEnum nfAcct = NFAccountEnum.getEnumType(TEST_FILE);
     		System.out.println("find NFAccountEnum from file name:" + nfAcct);
     		
     		parser.setCOGS(nfAcct,  cogs);

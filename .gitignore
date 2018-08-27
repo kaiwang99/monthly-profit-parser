@@ -10,11 +10,10 @@ log*.txt
 
 
 # Generated files
-/fba-returns/
-/fba-returns-input/
-/fba-returns-backup/
+/FBA_return_Order/
 /AprTxn/
 /FebTxn/
 /MayTxn/
 /JunTxn/
+/JulyTxn/
 /src/main/resources/*.csv

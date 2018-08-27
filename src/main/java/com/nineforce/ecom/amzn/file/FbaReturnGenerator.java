@@ -62,6 +62,7 @@ public class FbaReturnGenerator {
 		case AMZN_TQS: addressHeader = TQS_HDR; orderPrefix = "R"; break;
 		case AMZN_SQB: addressHeader = SQB_HDR; orderPrefix = "S"; break;
 		case AMZN_HG:  addressHeader = HG_HDR;  orderPrefix = "H"; break;
+		case AMZN_WSD:  addressHeader = WSD_HDR;  orderPrefix = "W"; break;
 		default: 
 			addressHeader = null; 
 			System.out.println("No output file address header found.");
@@ -163,6 +164,7 @@ public class FbaReturnGenerator {
 			String order_num = order_num_base + "_" + i +"_" + loopQty;
 			String output_file = i + "___" + order_num + "___" + sku + "___" + qty + ".txt";
 			
+			// Need to create the subDir 
 			fout = new File(subDir + "/" + output_file);
 			fos = new FileOutputStream(fout);
 		 
@@ -239,6 +241,22 @@ public class FbaReturnGenerator {
 			"ShippingNotes												\r" + 
 			"													\r" + 
 			"MerchantSKU	SellableQuantity	UnsellableQuantity\r";
+
+	final String WSD_HDR = 
+			"RemovalDisposition	Return 												\r" + 
+			"AddressName	Susie WSD Wong 												\r" + 
+			"AddressFieldOne	unit 8  												\r" + 
+			"AddressFieldTwo	ExtraSpace Storage													\r" + 
+			"AddressFieldThree													\r" + 
+			"AddressCity	Cary  												\r" + 
+			"AddressCountryCode	US 												\r" + 
+			"AddressStateOrRegion	NC 												\r" + 
+			"AddressPostalCode	27519 												\r" + 
+			"ContactPhoneNumber	919 351-9797												\r" + 
+			"ShippingNotes												\r" + 
+			"													\r" + 
+			"MerchantSKU	SellableQuantity	UnsellableQuantity\r";	
+
 	
 
 	public static void main(String[] args) {
