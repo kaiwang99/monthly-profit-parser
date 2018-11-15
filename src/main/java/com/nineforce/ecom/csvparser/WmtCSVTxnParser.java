@@ -24,7 +24,7 @@ public class WmtCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	public static Logger logger = (Logger) LoggerFactory.getLogger(WmtCSVTxnParser.class);
 
 	// put in Util filepublic final static double US_SHIP_COST = 3.2; 
-	private final static String WMT_FEE_FILE = "Walmart-TQS-fees.csv";
+	private final static String WMT_FEE_FILE = "Walmart-TQS-fees";
 	
 	
 	
@@ -78,6 +78,7 @@ public class WmtCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
           }
       } catch(Exception e) {
       		e.printStackTrace();
+      		logger.error("Exception", e);
       }
 	      
       logger.info("In getWmtFees. totalCancel is {}. totalCommission is {}", totalCancel, totalCommission);

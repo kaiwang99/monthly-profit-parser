@@ -15,13 +15,17 @@ import org.slf4j.LoggerFactory;
 
 public enum PaypalTxnTypeEnum {
 
-	CANCEL_HOLD("Cancellation of Hold for Dispute Resolution"), 
 	EBAY_PAYMNET("eBay Auction Payment"),
+	CANCEL_HOLD("Cancellation of Hold for Dispute Resolution"), 
 	EXPRESS_CHECKOUT_PAYMENT("Express Checkout Payment"),
 	HOLD_PAYMENT("Hold on Balance for Dispute Investigation"), 
 	MOBILE_PAYMENT("Mobile Payment"),
 	PAYMENT_REFUND("Payment Refund"),
 	PAYMENT_REVERSAL("Payment Reversal"),
+	IPR_REVERSAL("Instant Payment Review (IPR) reversal"),
+	GENERAL_WITHDRAWAL("General Withdrawal"),
+	GENERAL_PAYMENT("General Payment"),
+	INVOICE_SENT("Invoice Sent"),
 	ERROR("Error");
 	
 	public static Logger logger = (Logger) LoggerFactory.getLogger(PaypalTxnTypeEnum.class);

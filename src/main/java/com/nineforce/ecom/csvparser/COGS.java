@@ -181,8 +181,10 @@ public class COGS {
 		
 		if (acctMap.get(rootSKU) != null)
 			return acctMap.get(rootSKU);
-		else 
-			return DEFAULT_SKU_COST;
+		
+		// Nothing found, log and keep running
+		logger.warn("SKU[{}] can't find for Account[{}]", sku, a);
+		return DEFAULT_SKU_COST;
 	}
 
 	
@@ -225,7 +227,7 @@ public class COGS {
 			return sku.substring(0, sku.length() - SL_SUFFIX.length());
 		}
 		if (sku.endsWith(SL_SUFFIX2)) {
-			System.out.println("finding SL 2:" + sku);
+			//System.out.println("finding SL 2:" + sku);
 			return sku.substring(0, sku.length() - SL_SUFFIX2.length());
 		}
 		if (sku.endsWith(KWH_SUFFIX)) {

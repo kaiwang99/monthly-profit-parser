@@ -36,6 +36,11 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	double totalShipping = 0.0;
 	double monthlyNetForBonus = 0.0;
 	
+	// This 3 for small income statement beginning part
+	double totalPPGross = 0.0; 
+	double totalPPFee = 0.0; 
+	double totalPPNet = 0.0; 
+	
 	public PaypalCSVTxnParser(String csvFile) {
 		super(csvFile);    //super initOutputFile
 		
@@ -200,9 +205,11 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
         		String strGross = csvRecord.get("Gross");
         		String strFee = csvRecord.get("Fee");
         		String strNet = csvRecord.get("Net");
-        		double gross = Double.parseDouble(strGross);
-        		double fee = Double.parseDouble(strFee);
-        		double grossNet = Double.parseDouble(strNet);
+        		
+        		
+        		double gross = Util.parseDouble(strGross);
+        		double fee = Util.parseDouble(strFee);
+        		double grossNet = Util.parseDouble(strNet);
         		
         		PaypalTxnTypeEnum curTypeEnum = PaypalTxnTypeEnum.getEnumType(type);
         		PaypalTxnTypeSum curTypeSum = txnByTypes.get(curTypeEnum);
@@ -214,6 +221,9 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
         		curTypeSum.addTxnGrossNet(grossNet);
         		
         		writeOutItemLine(csvRecord, curTypeEnum, grossNet);
+        		totalPPGross += gross; 
+        		totalPPFee += fee; 
+        		totalPPNet += grossNet; 
         }
         
         writeOutSummary();
@@ -221,6 +231,7 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
         
       } catch(Exception e) {
     	  	e.printStackTrace();
+    	  	logger.error("Exception", e);
       }
   		
 		return 0;
@@ -230,8 +241,123 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	//Write out summary section
 	void writeOutSummary() {
 		Cell cell = null;
-		int topRowid = 1;
+		int topRowid = EXCEL_START_LINE;
+		
+		
+		//////////////////////////////////
+		//  Summary By Type 
+		//////////////////////////////////
+		
+		frontRow[topRowid].createCell(0); 
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Summary By Type");
+		cell.setCellStyle(style6);
+		topRowid++; 
+		topRowid++;
+		
+		// create a header for type
+		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Type");
+		cell = frontRow[topRowid].createCell(2); cell.setCellValue("Cnt");
+		cell = frontRow[topRowid].createCell(3); cell.setCellValue("Gross");
+		cell = frontRow[topRowid].createCell(4); cell.setCellValue("Fee");
+		cell = frontRow[topRowid].createCell(5); cell.setCellValue("Net");
+		topRowid++;
+		
+		//	HashMap<String, String>  stdTypeLocType = Util.getAmznStdTypeLocTypeMap(curLocale);
+		Iterator<PaypalTxnTypeEnum> enumKeySet = txnByTypes.keySet().iterator();
+		while(enumKeySet.hasNext()) {
+			PaypalTxnTypeEnum curTxnType = enumKeySet.next();
+			double gross = ((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnGross(); 
+			frontRow[topRowid].createCell(0);  //skip firt col
+				
+			// type, count write out
+			String curTypeStr = curTxnType.getTypeName();
+			cell = frontRow[topRowid].createCell(1); cell.setCellValue(curTypeStr);
+			cell = frontRow[topRowid].createCell(2); cell.setCellValue(((PaypalTxnTypeSum)txnByTypes.
+					get(curTxnType)).getTotalTxnCnt());				
+				// gross, fee, net writ out
+			cell = frontRow[topRowid].createCell(3); cell.setCellValue(round(gross));
 			
+			double fee = ((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnFee(); 
+			cell = frontRow[topRowid].createCell(4); cell.setCellValue(round(fee));
+			
+			double grossNet = ((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnGrossNet(); 				
+			cell = frontRow[topRowid].createCell(5); cell.setCellValue(round(grossNet));
+			
+			topRowid++;
+				
+			// PP transfer  TODO if (curTxnType != AmznTxnTypeEnum.TRANSFER)   monthlyGross += amt; 
+		}
+		
+
+		////////////////////////////////////////////////////////////
+		// write out a small income statement on the right section 
+		////////////////////////////////////////////////////////////
+		
+		topRowid = EXCEL_START_LINE;
+		int colid = STMT_START_COL;
+		cell = frontRow[topRowid].createCell(colid); cell.setCellValue("Small Income Statment");
+		cell.setCellStyle(style6);
+		topRowid++;
+		topRowid++;
+	
+		
+		cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Paypal Income");
+		cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(totalPPGross);
+		topRowid++;
+		cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Paypal Fee");
+		cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(totalPPFee);
+		topRowid++;
+		cell = frontRow[topRowid].createCell(colid); 		cell.setCellValue("Paypal Net");
+		cell = frontRow[topRowid].createCell(colid + 2); 		cell.setCellValue(totalPPNet);
+
+		topRowid++;
+		topRowid++;
+		cell = frontRow[topRowid].createCell(colid); 		cell.setCellValue("COGS");
+		cell = frontRow[topRowid].createCell(colid + 2); 		cell.setCellValue(totalCOGS);
+		topRowid++;
+		cell = frontRow[topRowid].createCell(colid); 		cell.setCellValue("Est. Shipping");
+		cell = frontRow[topRowid].createCell(colid + 2); 		cell.setCellValue(totalShipping);				
+		topRowid++;
+		cell = frontRow[topRowid].createCell(colid); 		cell.setCellValue("ebay FVF on Card");
+		cell = frontRow[topRowid].createCell(colid + 2); 		cell.setCellValue(0);	
+		cell = frontRow[topRowid].createCell(colid + 3); 		cell.setCellValue("手动添加");	
+		topRowid++;
+		cell = frontRow[topRowid].createCell(colid); 		cell.setCellValue("Large Shipping Cost");
+		cell = frontRow[topRowid].createCell(colid + 2); 		cell.setCellValue(0);	
+		cell = frontRow[topRowid].createCell(colid + 3); 		cell.setCellValue("手动添加");	
+		
+		topRowid++;
+		topRowid++;
+		cell = frontRow[topRowid].createCell(colid); cell.setCellValue("Total Net From ebay");
+		cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(round(totalNetFromEbay));		
+
+		////////////////////////////////////////////////////////////
+		// write out bonus
+		////////////////////////////////////////////////////////////	
+		topRowid = EXCEL_START_LINE;
+		colid = BONUS_START_COL;
+		cell = frontRow[topRowid].createCell(colid); cell.setCellValue("Bonus Calculation");
+		cell.setCellStyle(style6);
+		topRowid++;
+		topRowid++;
+		
+		cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Gross Profit");
+		cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(round(totalNetFromEbay));	
+		topRowid++;
+		
+		cell = frontRow[topRowid].createCell(colid);		cell.setCellValue("Bonus USD");
+		cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(round(totalNetFromEbay * Util.BONUS_RATE));
+		topRowid++;
+
+		cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Rate When Purchase");
+		cell = frontRow[topRowid].createCell(colid + 2); 	cell.setCellValue(USDRMB_CURRENT);
+		topRowid++;
+		
+		cell = frontRow[topRowid].createCell(colid);		cell.setCellValue("Bonus RMB");
+		cell = frontRow[topRowid].createCell(colid + 2);	cell.setCellValue(round(totalNetFromEbay *  Util.BONUS_RATE * USDRMB_CURRENT));
+			
+		
+/*
 		frontRow[topRowid].createCell(0); 
 		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Total COGS");
 		cell = frontRow[topRowid].createCell(2); cell.setCellValue(round(totalCOGS));
@@ -249,30 +375,7 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 		topRowid++;
 		
 		
-	//	HashMap<String, String>  stdTypeLocType = Util.getAmznStdTypeLocTypeMap(curLocale);
-		Iterator<PaypalTxnTypeEnum> enumKeySet = txnByTypes.keySet().iterator();
-		while(enumKeySet.hasNext()){
-				PaypalTxnTypeEnum curTxnType = enumKeySet.next();
-				double gross = ((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnGross(); 
-				frontRow[topRowid].createCell(0);  //skip firt col
-				
-				// type, count write out
-				String curTypeStr = curTxnType.getTypeName();
-				cell = frontRow[topRowid].createCell(1); cell.setCellValue(curTypeStr);
-				cell = frontRow[topRowid].createCell(2); cell.setCellValue(((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnCnt());
-				cell = frontRow[topRowid].createCell(3); cell.setCellValue("");
-				
-				// gross, fee, net writ out
-				cell = frontRow[topRowid].createCell(4); cell.setCellValue(round(gross));
-				double fee = ((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnFee(); 
-				cell = frontRow[topRowid].createCell(5); cell.setCellValue(round(fee));
-				double grossNet = ((PaypalTxnTypeSum)txnByTypes.get(curTxnType)).getTotalTxnGrossNet(); 
-				cell = frontRow[topRowid].createCell(6); cell.setCellValue(round(grossNet));
-				
-				topRowid++;
-				
-				// PP transfer  TODO if (curTxnType != AmznTxnTypeEnum.TRANSFER)   monthlyGross += amt; 
-		}
+
 		
 		
 		topRowid++;
@@ -294,7 +397,8 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 		//Warn TQS-EU and US about ads-cost
 		topRowid++;
 		cell = frontRow[topRowid].createCell(1); cell.setCellValue("Possible FVF exense on credit card");
-		
+
+		*/
 		}
 	
 	// patch for wsd and ve share same PP file
@@ -443,9 +547,9 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	}
 	
 
-	private static final String COGS_PATH = "./JunTxn/COGS.csv";  //for testing in main
+	private static final String COGS_PATH = "./OctTxn/COGS.csv";  //for testing in main
 	//private static final String ppTestFile = "./MayTxn/ebay/pp-wsd.CSV";
-	private static final String ppTestFile = "./JunTxn/pp-test/pp-ss.CSV";
+	private static final String ppTestFile = "./OctTxn/pp-test/pp-tqs-201810.CSV";
 	
 	/**
 	 * @param args

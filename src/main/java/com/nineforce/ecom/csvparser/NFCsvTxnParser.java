@@ -6,7 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -14,13 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * I don't know whether it is a good idea to have base class. 
+ * Base class for other csv parsers
  * 
+ * I don't know whether it is a good idea to have base class. 
  * It seems only a few common features can be in this file
  * 
- * 
  * @author kaiwang
- *
  */
 
 public abstract class NFCsvTxnParser implements NFcsvParser {
@@ -29,9 +30,10 @@ public abstract class NFCsvTxnParser implements NFcsvParser {
 	XSSFWorkbook workbook;
 	XSSFSheet spreadsheet;
 	int rowid;
+	XSSFCellStyle style6; 
 	
 	XSSFRow frontRow[];
-	final int SUMMARY_LEN = 16;   //summar section of the xlsx file
+	final int SUMMARY_LEN = 20;   //summar section of the xlsx file
 	
 	
 	NFAccountEnum enumAccount;
@@ -60,8 +62,12 @@ public abstract class NFCsvTxnParser implements NFcsvParser {
 	}
 	
 	/**
-	 * create xlsx file and leave enough for summary 
+	 * This should be invoked after setCOGS(account_type, cogs), so the correct
+	 * sheet_name will be created in Excel
 	 * 
+	 * create xlsx file and leave enough for summary 
+	 * create a style of section heading. 
+	 *
 	 * @return 
 	 */
 	public void initOutputFile() {
@@ -77,6 +83,12 @@ public abstract class NFCsvTxnParser implements NFcsvParser {
 			frontRow[i] = spreadsheet.createRow(i);
 		
 		rowid = SUMMARY_LEN;
+		
+		style6 = workbook.createCellStyle();
+	      style6.setFillBackgroundColor(
+	      HSSFColor.LEMON_CHIFFON.index );
+	      style6.setFillPattern(XSSFCellStyle.LEAST_DOTS);
+	      style6.setAlignment(XSSFCellStyle.ALIGN_FILL);
 	}
 
 	

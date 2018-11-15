@@ -9,7 +9,7 @@ public class Util {
 	public static final double EURMB_PURCHASE = 7.29;
 	public static final double GBPRMB_PURCHASE = 8.22;
 	
-	public static final double USDRMB_CURRENT = 6.33;
+	public static final double USDRMB_CURRENT = 6.80;
 	public static final double EURMB_CURRENT = 7.35;   //current rate change monthly 
 	public static final double GBPRMB_CURRENT = 8.85;
 	
@@ -23,7 +23,7 @@ public class Util {
 	public static final Locale IT_LOCALE = new Locale("it", "IT");
 	public static final Locale ES_LOCALE = new Locale("es", "ES");
 	
-	public final static double US_SHIP_COST = 3.2; 
+	public final static double US_SHIP_COST = 3.3; 
 	
 	/**
 	 * Pass in locale and create  localeTypeStr -> stdTypeStr Map
@@ -111,4 +111,12 @@ public class Util {
 		return Math.round(num*100)/100.00;
 	}
 	
+	public static double parseDouble(String s) {
+		if (s== null) return 0;
+		
+		String str = s.trim();
+		if (str.length() == 0 )  return 0;
+		
+		return Double.parseDouble(str);
+	}
 }

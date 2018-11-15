@@ -6,6 +6,11 @@ import java.util.Locale;
 public interface NFcsvParser {
 	
 	
+	//  Excel sections starting 
+	final int EXCEL_START_LINE = 1;
+	final int STMT_START_COL = 9;
+	final int BONUS_START_COL = 16;
+	
 	/**
 	 * Return the real records parsed. 
 	 * @return
