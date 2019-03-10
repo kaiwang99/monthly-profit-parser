@@ -38,29 +38,25 @@ import static com.nineforce.ecom.csvparser.Util.*;
 // parse amazon csv file from reports. mostly use for the month for bonus calculation
 // Hold data in csvRecord and also by type in enummap 
 
-public class AmznCSVTxnParser implements NFcsvParser {
+public class AmznCSVTxnParser extends NFCsvTxnParser {
 	final int SUMMARY_LEN = 18;   //summar section of the xlsx file
 	final String HEADER = "header";   // just a flage to indicate header of csv.
 	public static Logger logger = (Logger) LoggerFactory.getLogger(AmznCSVTxnParser.class);
-	
-	//  Excel sections starting 
-	final int EXCEL_START_LINE = 1;
-	final int STMT_START_COL = 7;
-	final int BONUS_START_COL = 15;
-	
-	String csvInputFile;
-	String xlsxOutputFile;
-	XSSFWorkbook workbook;
-	XSSFSheet spreadsheet;
-	int rowid;
-	XSSFCellStyle style6; 
+
+	// below all move to parent class
+	//String csvInputFile;
+	//String xlsxOutputFile;
+	//XSSFWorkbook workbook;
+	//XSSFSheet spreadsheet;
+	//int rowid;
+	//XSSFCellStyle style6; 
 	
 	Locale curLocale; 
 	HashMap<String, String> locTypeStdTypeMap;
 	
 	COGS cogs;
-	NFAccountEnum enumAccount;
-	XSSFRow frontRow[];
+	//NFAccountEnum enumAccount;  mv to parent
+	// XSSFRow frontRow[];  mov to parent
 	
 	float totalCOGS = (float) 0.0;
 	float totalNet = (float) 0.0; 
@@ -71,6 +67,8 @@ public class AmznCSVTxnParser implements NFcsvParser {
 	private ResourceBundle messages; 
 	
 	public AmznCSVTxnParser(String csvFile) {
+		super(csvFile);
+		
 		this.curLocale = new Locale("en", "US");
 		this.csvInputFile = csvFile;
 		txnByTypes = new EnumMap<> (AmznTxnTypeEnum.class);
@@ -89,11 +87,12 @@ public class AmznCSVTxnParser implements NFcsvParser {
 	}
 	
 
-	/**
+	/**  mv to parent class
+	 * 
 	 * create xlsx file and leave enough for summary 
 	 * 
 	 * @return 
-	 */
+	
 	 public void initOutputFile() {
 		int lastDotIndex = csvInputFile.lastIndexOf('.');
 		xlsxOutputFile = csvInputFile.substring(0, lastDotIndex) + ".xlsx";
@@ -113,7 +112,8 @@ public class AmznCSVTxnParser implements NFcsvParser {
 	      HSSFColor.LEMON_CHIFFON.index );
 	      style6.setFillPattern(XSSFCellStyle.LEAST_DOTS);
 	      style6.setAlignment(XSSFCellStyle.ALIGN_FILL);
-	}
+	} 
+	 */
 	
 	
 	void writeOutHeaderLine(Map<String, Integer> hdrMap) {
@@ -160,7 +160,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
 			String sku = csvRecord.get(locSKU);
 			
 			// TODO easy to get exception on new SKU
-			System.out.println("Get SKU[" + sku + "] for file:" + csvInputFile);
+			//System.out.println("Get SKU[" + sku + "] for file:" + csvInputFile);
 			logger.warn("Get SKU[{}] for file:{}", sku, csvInputFile); 
 		
 			if(sku != null) {
@@ -306,7 +306,8 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		topRowid++;
 		
 		cell = frontRow[topRowid].createCell(colid); 	cell.setCellValue("Gross Profit [Incl Ad.]");
-		cell = frontRow[topRowid].createCell(colid + 2); cell.setCellFormula("j12");
+		//cell = frontRow[topRowid].createCell(colid + 2); cell.setCellFormula("j12");
+		cell = frontRow[topRowid].createCell(colid + 2); cell.setCellValue(round(monthlyGross));
 		topRowid++;
 		
 		cell = frontRow[topRowid].createCell(colid);		cell.setCellValue("Bonus USD");
@@ -321,6 +322,8 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		cell = frontRow[topRowid].createCell(colid + 2);	cell.setCellValue(round(monthlyGross *  Util.BONUS_RATE * Util.getCurrentRate(curLocale)));
 	}
 	
+/*	not used
+ * 
 	void writeOutSummary_Bonus() {
 		int topRowid = EXCEL_START_LINE;
 		int colid = STMT_START_COL;
@@ -330,6 +333,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
 		
 		
 	}
+	*/
 	
 	
 	void closeOutputFile() {
@@ -537,7 +541,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
             writeOutSummary();
             closeOutputFile();
             
-        }  catch(IOException e) {
+        }  catch(Exception e) {
         		e.printStackTrace();
         		logger.error(e.getMessage());
         }
@@ -593,7 +597,7 @@ public class AmznCSVTxnParser implements NFcsvParser {
 	
 	private static final String COGS_PATH = "./MayTxn/COGS.csv";
 	//private static final String TEST_FILE = "./JulyTxn/2018JulMonthlyTransaction-Amazon-TQS-US.csv";
-	private static final String TEST_FILE = "./JulyTxn/2018JulMonthlyTransaction-Amazon-AD.csv";
+	private static final String TEST_FILE = "./AugTxn/2018AugMonthlyTransaction-Amazon-TQS_ES.csv";
 
 	
 	public static void main(String[] args) throws IOException {

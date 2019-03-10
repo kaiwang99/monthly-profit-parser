@@ -98,15 +98,15 @@ public class COGS {
 				String adSKU = csvRecord.get("AD_SKU");
 				String hgSKU = csvRecord.get("HG_SKU");
 				String sqbSKU = csvRecord.get("SQB_SKU");
+				String emcSKU = csvRecord.get("EMC_SKU");
 				String priceStr = csvRecord.get("Price");
 				if (priceStr == null && priceStr == "")
 					continue;
 				if (tqsSKU == null && ssSKU == null && wsdSKU == null && veSKU == null && adSKU == null && hgSKU == null
-						&& sqbSKU == null)
+						&& sqbSKU == null && emcSKU == null)
 					continue;
 
 				float price = (float) (Float.parseFloat(priceStr) * (1 + Util.ADMIN_OVERHEAD));
-				// System.out.println("COGS count:" + count++ + " price:" + priceStr);
 
 				if (tqsSKU != null)
 					allCOGS.get(NFAccountEnum.AMZN_TQS).put(tqsSKU, price);

@@ -16,6 +16,7 @@ import java.util.Map;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.slf4j.Logger;
@@ -193,6 +194,7 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
   		File inputFile = new File(csvInputFile);
   		CSVParser csvParser = CSVParser.parse(inputFile, Charset.forName("UTF-8"), 
   				CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase().withTrim());
+  		
   		writeOutHeaderLine(csvParser.getHeaderMap());
   		
 		List<CSVRecord> csvRecords = csvParser.getRecords();    

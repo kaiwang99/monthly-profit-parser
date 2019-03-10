@@ -9,6 +9,7 @@ public enum NFAccountEnum {
 	AMZN_SQB(AMZN,"sqb"), 
 	AMZN_AD(NFAccountTypeEnum.AMZN,"ad"), 
 	AMZN_HG(AMZN,"hg"), 
+	AMZN_EMC(AMZN,"emc"), 
 	
 	EBAY_TQS(EBAY, "tqs"), 
 	EBAY_SS(EBAY, "ss"),

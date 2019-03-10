@@ -12,8 +12,10 @@ import org.slf4j.LoggerFactory;
 //import static com.nineforce.ecom.util.NFAccountTypeEnum.*;
 
 /**
- * This class handles all accounts. it invokes  COGS to read cogs file, and the each account-type parser
+ * This is the main entry that handles all accounts. it invokes  COGS to read cogs file
+ * and the each account-type parser. 
  * It reads in source file directory, which contains all the files. 
+ * 
  * @author kaiwang
  *
  */
@@ -26,12 +28,16 @@ public class CSVMonthlyTxn {
     ArrayList<String> sourceFiles = new ArrayList<String>();
     COGS cogs;
     
+    
     public CSVMonthlyTxn(String sourceDir) {
     		this.sourceDir = sourceDir;
     		getSoruceFiles();
     		initCOGS();
     }
     
+    /** 
+     * Go through the source directory and populate sourceFile. 
+     */
     void getSoruceFiles() {
     		File folder = new File(sourceDir);
         File[] files = folder.listFiles();
@@ -64,7 +70,7 @@ public class CSVMonthlyTxn {
     }
     
     void initCOGS() {
-    		logger.info("initCOGS() on file: {}/COGS.csv" + this.sourceDir);
+    		logger.info("initCOGS() on file: {}/COGS.csv", this.sourceDir);
     		cogs = new COGS(this.sourceDir + "/COGS.csv");
     		try {
     				cogs.parse();
@@ -75,8 +81,13 @@ public class CSVMonthlyTxn {
     }
     
     /**
-     * Go over the directory and invoke AmznCSVTxnParser and other Parsers on each type and country. 
-     * File names must indicate "AMZN-TQS" or "ebay-ss"  case insensitive. 
+     * Go over sourceFile list and invoke AmznCSVTxnParser and other Parsers on each type and country. 
+     * File names must indicate market place and account name, such as "AMZN-TQS" or "ebay-ss"  case insensitive. 
+     * More examples: 
+     * 	 	amazon-ad
+	 * 		ebay-ve
+	 * 		wmt-tqs
+	 * 		etsy-tqs
      * 
      * TODO  EU countries for currency? EU COGS is different anyway. May need amzn-tqs-fr eventually. 
      * 
@@ -127,6 +138,8 @@ public class CSVMonthlyTxn {
 
     
     /**
+     * TODO   parse arguments if give sales to run directly 
+     * 
      * @param args
      * @throws IOException
      */
@@ -134,7 +147,7 @@ public class CSVMonthlyTxn {
     		
     		System.out.println("=========running  ===========\n");
     		
-    		CSVMonthlyTxn mon = new CSVMonthlyTxn("OctTxn");
+    		CSVMonthlyTxn mon = new CSVMonthlyTxn("Jan09");
     		mon.parseFileInDir();
     }
     
