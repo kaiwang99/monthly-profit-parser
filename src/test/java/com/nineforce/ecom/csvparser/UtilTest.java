@@ -91,8 +91,21 @@ System.out.println(map);
 		assertEquals(Util.GBPRMB_CURRENT, Util.getCurrentRate(l));
 		
 		l = Util.DE_LOCALE;
-		assertEquals(Util.EURMB_CURRENT, Util.getCurrentRate(l));
-		
+		assertEquals(Util.EURMB_CURRENT, Util.getCurrentRate(l));		
 	}
 
+	@Test
+	void testParseDouble() {
+		String s = "111";
+		assertEquals(111, Util.parseDouble(s));	
+		
+		s = "-111111.00";
+		assertEquals(-111111, Util.parseDouble(s));	
+		
+		// failed when ,
+		s = "-111,111.00";
+		assertEquals(-111111.00, Util.parseDouble(s));	
+	}
+
+	
 }

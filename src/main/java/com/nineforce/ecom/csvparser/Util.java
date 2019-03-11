@@ -1,5 +1,7 @@
 package com.nineforce.ecom.csvparser;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -117,6 +119,19 @@ public class Util {
 		String str = s.trim();
 		if (str.length() == 0 )  return 0;
 		
-		return Double.parseDouble(str);
+		// use NumberFormat to handle different thousand separator and
+		// decimal separator correctly. No p.replaceAll(",",".")
+		
+		NumberFormat format = NumberFormat.getInstance(Locale.US);
+		Number number = null;
+		try {
+			number = format.parse(s);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		double d = number.doubleValue();
+		
+		return d;
 	}
 }
