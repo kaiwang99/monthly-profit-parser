@@ -39,10 +39,10 @@ class CSVMonthlyTxnTest {
 	@Test
 	final void testInitCOGS() {
 		// 
-		assertEquals(mon.cogs.getCOGS(NFAccountEnum.AMZN_TQS, "7-100072801-1001-38620011"), 1.5);
-		assertEquals(mon.cogs.getCOGS(NFAccountEnum.EBAY_SS, "XB1717-ASCBF337-302HMT"), 10);
+		assertEquals(mon.cogs.getRealCOGSInRMB(NFAccountEnum.AMZN_TQS, "7-100072801-1001-38620011"), 1.5);
+		assertEquals(mon.cogs.getRealCOGSInRMB(NFAccountEnum.EBAY_SS, "XB1717-ASCBF337-302HMT"), 10);
 		
-		double delta = Math.abs(mon.cogs.getCOGS(NFAccountEnum.AMZN_WSD, "CALLOFD-TSION5-8-LIGTBAR56") - 3.6);
+		double delta = Math.abs(mon.cogs.getRealCOGSInRMB(NFAccountEnum.AMZN_WSD, "CALLOFD-TSION5-8-LIGTBAR56") - 3.6);
 		assertTrue(delta < 0.001);
 	}
 

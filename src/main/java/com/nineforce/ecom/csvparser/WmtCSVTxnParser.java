@@ -1,7 +1,6 @@
 package com.nineforce.ecom.csvparser;
 
 import static com.nineforce.ecom.csvparser.Util.US_LOCALE;
-import static com.nineforce.ecom.csvparser.Util.US_SHIP_COST;
 import static com.nineforce.ecom.csvparser.Util.round;
 
 import java.io.File;
@@ -266,9 +265,10 @@ public class WmtCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 	void writeOutItemLine(CSVRecord csvRecord,  double gross) {
 		
 		String strSKU = csvRecord.get("SKU");
-		double skuCOGS_RMB = cogs.getCOGS(enumAccount, strSKU);
+		double skuCOGS_RMB = cogs.getRealCOGSInRMB(enumAccount, strSKU);
 		double skuCOGS_Loc = (float) (skuCOGS_RMB/Util.getCurrentRate(Util.US_LOCALE));
-		double net = gross - skuCOGS_Loc - US_SHIP_COST;	
+		double shippingCost = Util.getShippingCost(strSKU);
+		double net = gross - skuCOGS_Loc - shippingCost;	
 		
 		XSSFRow row = spreadsheet.createRow(rowid++);
 		int cellid = 0;
@@ -282,12 +282,12 @@ public class WmtCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
         cell = row.createCell(cellid++);
         cell.setCellValue(round(skuCOGS_Loc));
         cell = row.createCell(cellid++);
-        cell.setCellValue(US_SHIP_COST);			//shipping avg about $3.2
+        cell.setCellValue(shippingCost);			//shipping avg about $3.2
         cell = row.createCell(cellid++);
         cell.setCellValue(round(net));
         
         totalCOGS += skuCOGS_Loc;
-        totalShippingPaid += US_SHIP_COST;
+        totalShippingPaid += shippingCost;
         totalNet += net;
 	}
 	
@@ -313,7 +313,7 @@ public class WmtCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 		WmtCSVTxnParser parser = new WmtCSVTxnParser(wmtTestFile);     //args[0]);
 		NFAccountEnum nfAcct = NFAccountEnum.getEnumType(wmtTestFile);
 		logger.info("find NFAccountEnum from file name:{}", nfAcct);
-		parser.setCOGS(nfAcct,  cogs);
+		parser.setAccountAndCOGS(nfAcct,  cogs);
 		parser.initOutputFile();
 		
 		parser.parseFile();		//parse PP file and create output .xlsx

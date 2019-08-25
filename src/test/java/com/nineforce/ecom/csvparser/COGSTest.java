@@ -55,15 +55,15 @@ class COGSTest {
 		cogs.parse();
 		
 		//assertEquals(cogs.getCOGS(NFAccountEnum.AMZN_TQS, "7-100072801-1001-38620011"), 1.5*(1 + Util.ADMIN_OVERHEAD));
-		double delta = Math.abs(cogs.getCOGS(NFAccountEnum.AMZN_TQS, "7-100072801-1001-38620011") -
+		double delta = Math.abs(cogs.getRealCOGSInRMB(NFAccountEnum.AMZN_TQS, "7-100072801-1001-38620011") -
 								1.5*(1 + Util.ADMIN_OVERHEAD));
 		assertTrue(delta < 0.001);
 		
 		
 		
-		assertEquals(cogs.getCOGS(NFAccountEnum.EBAY_SS, "XB1717-ASCBF337-302HMT"), 10*(1 + Util.ADMIN_OVERHEAD));
+		assertEquals(cogs.getRealCOGSInRMB(NFAccountEnum.EBAY_SS, "XB1717-ASCBF337-302HMT"), 10*(1 + Util.ADMIN_OVERHEAD));
 		
-		delta = Math.abs(cogs.getCOGS(NFAccountEnum.AMZN_WSD, "CALLOFD-TSION5-8-LIGTBAR56") - 3.6*(1 + Util.ADMIN_OVERHEAD));
+		delta = Math.abs(cogs.getRealCOGSInRMB(NFAccountEnum.AMZN_WSD, "CALLOFD-TSION5-8-LIGTBAR56") - 3.6*(1 + Util.ADMIN_OVERHEAD));
 		assertTrue(delta < 0.001);
 		
 		

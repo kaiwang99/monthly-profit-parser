@@ -79,7 +79,7 @@ class AmznCSVTxnParserTest {
 	// now, initOutputFile is called when setCOGS
 	@Test
 	void testInitOutputFile() {
-		parser.setCOGS(NFAccountEnum.AMZN_AD, cogs);
+		parser.setAccountAndCOGS(NFAccountEnum.AMZN_AD, cogs);
 		parser.initOutputFile();
 		// above invoeks parser.initOutputFile();
 		

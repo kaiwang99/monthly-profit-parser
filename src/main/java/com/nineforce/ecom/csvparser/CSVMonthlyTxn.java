@@ -75,8 +75,9 @@ public class CSVMonthlyTxn {
     		try {
     				cogs.parse();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				// TODO Auto-generated catch block. Exit. Too much an error. 
 				e.printStackTrace();
+				System.exit(-1);
 			}
     }
     
@@ -123,7 +124,7 @@ public class CSVMonthlyTxn {
     				default: System.out.println(" TO BE DONE");
     			}
     			
-    			parser.setCOGS(nfAcct, cogs);
+    			parser.setAccountAndCOGS(nfAcct, cogs);
     			parser.initOutputFile();
     			
     			logger.info("\n\n\n========================================\nParse {}\n{}\n=============================\n", 
@@ -136,7 +137,6 @@ public class CSVMonthlyTxn {
     }
     
 
-    
     /**
      * TODO   parse arguments if give sales to run directly 
      * 
@@ -147,7 +147,7 @@ public class CSVMonthlyTxn {
     		
     		System.out.println("=========running  ===========\n");
     		
-    		CSVMonthlyTxn mon = new CSVMonthlyTxn("Jan09");
+    		CSVMonthlyTxn mon = new CSVMonthlyTxn("2019July");
     		mon.parseFileInDir();
     }
     

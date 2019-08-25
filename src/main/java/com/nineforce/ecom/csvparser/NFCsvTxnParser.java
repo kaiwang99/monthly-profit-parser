@@ -54,7 +54,7 @@ public abstract class NFCsvTxnParser implements NFcsvParser {
 	public String getCsvInputFile() { return this.csvInputFile;}
 	
 	
-	public void setCOGS(NFAccountEnum enumAccount, COGS cogs) {
+	public void setAccountAndCOGS(NFAccountEnum enumAccount, COGS cogs) {
 		this.enumAccount = enumAccount;
 		this.cogs = cogs;
 		

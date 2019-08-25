@@ -164,14 +164,20 @@ public class AmznCSVTxnParser extends NFCsvTxnParser {
 			logger.warn("Get SKU[{}] for file:{}", sku, csvInputFile); 
 		
 			if(sku != null) {
-				float skuCOGS_RMB = cogs.getCOGS	(enumAccount, sku);
-				float skuCOGS_Loc = (float) (skuCOGS_RMB/Util.getCurrentRate(curLocale));
-				float net = (float)total - skuCOGS_Loc;
+				double skuCOGS_RMB = cogs.getRealCOGSInRMB(enumAccount, sku);
+				double skuCOGS_Loc = skuCOGS_RMB/Util.getCurrentRate(curLocale);
+				float net = (float) (total - skuCOGS_Loc);
 				
 		         cell = row.createCell(cellid++);
 		         cell.setCellValue(skuCOGS_Loc);
 		         cell = row.createCell(cellid++);
 		         cell.setCellValue(net);
+		         
+		         // only care USD now. Not much EU and Canada sales
+		         if (skuCOGS_Loc == COGS.DEFAULT_US_COGS_USD)  {
+		        	 	cell = row.createCell(cellid++);
+			        cell.setCellValue("NO COGS");
+		         }
 		         
 		         totalSold += total;
 		         totalCOGS += skuCOGS_Loc;
@@ -367,7 +373,7 @@ public class AmznCSVTxnParser extends NFCsvTxnParser {
 	 * in this output file. 
 	 */
 	@Override	
-	public void setCOGS(NFAccountEnum enumAccount, COGS cogs) {
+	public void setAccountAndCOGS(NFAccountEnum enumAccount, COGS cogs) {
 		this.enumAccount = enumAccount;
 		this.cogs = cogs;
 		
@@ -502,7 +508,6 @@ public class AmznCSVTxnParser extends NFCsvTxnParser {
             		// TODO log4j here. This is a place that get null exception if 
             		// I see HG Apr 18, 10% promotion has no type info and strange order number. 
             		if(stdType == null)	{ 
-            			System.out.println("local type:" + type + "  stdType:" + stdType);
             			logger.warn("local type:{}  stdType:{}", type, stdType);
             		}
             	
@@ -510,7 +515,6 @@ public class AmznCSVTxnParser extends NFCsvTxnParser {
             		AmznTxnTypeSum curTypeSum = txnByTypes.get(curTypeEnum);
             		
             		if (curTypeSum == null) {
-            			System.out.println("Wrong: no AmznTxnTypeSum found");
             			logger.error("Wrong: no AmznTxnTypeSum found{}", curTypeSum);
             		}
             		
@@ -595,9 +599,9 @@ public class AmznCSVTxnParser extends NFCsvTxnParser {
 	//private static final String SAMPLE_CSV_FILE_PATH = "./src/main/resources/2018FebMonthlyTransaction-AD.csv";
     
 	
-	private static final String COGS_PATH = "./MayTxn/COGS.csv";
+	private static final String COGS_PATH = "./2019Mar-v1/COGS.csv";
 	//private static final String TEST_FILE = "./JulyTxn/2018JulMonthlyTransaction-Amazon-TQS-US.csv";
-	private static final String TEST_FILE = "./AugTxn/2018AugMonthlyTransaction-Amazon-TQS_ES.csv";
+	private static final String TEST_FILE = "./2019Mar-v1/2019MarMonthlyTransaction-Amazon-AD-US.csv";
 
 	
 	public static void main(String[] args) throws IOException {
@@ -618,7 +622,7 @@ public class AmznCSVTxnParser extends NFCsvTxnParser {
     		NFAccountEnum nfAcct = NFAccountEnum.getEnumType(TEST_FILE);
     		System.out.println("find NFAccountEnum from file name:" + nfAcct);
     		
-    		parser.setCOGS(nfAcct,  cogs);
+    		parser.setAccountAndCOGS(nfAcct,  cogs);
     		parser.initOutputFile();
 
     		parser.parseFile();

@@ -27,7 +27,7 @@ public interface NFcsvParser {
 	 * @param cogs
 	 * @return
 	 */
-	public void setCOGS(NFAccountEnum enumAccount, COGS cogs);
+	public void setAccountAndCOGS(NFAccountEnum enumAccount, COGS cogs);
 	
 	/**
 	 * Set locale for EU countried. The file header, type string, and currency are localized. 

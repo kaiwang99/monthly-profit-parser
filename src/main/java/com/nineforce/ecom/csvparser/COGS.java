@@ -40,12 +40,14 @@ import org.slf4j.LoggerFactory;
 // now only hold SKU, Account, Price in RMB
 public class COGS {
 	
-	final  static  float DEFAULT_SKU_COST = 33; 		//used this when no sku found. So we won't stop running. 
+	final static double 	DEFAULT_US_COGS_USD = 0.01; 
+	final  static double DEFAULT_SKU_COST = DEFAULT_US_COGS_USD*Util.USDRMB_CURRENT; 	 //used this when no sku found. So we won't stop running. 
 	
 	final static String SL_SUFFIX = "__SL";
 	final static String SL_SUFFIX2 = "_SL"; // single _
 	final static String KWH_SUFFIX = "-KWH";
 	final static String NC_SUFFIX = "-NC";
+	final static String NC_SUFFIX_LONG = "--NC";
 	final static String CESL_SUFFIX = "-CE__SL";
 	final static String A_SUFFIX = "_A";
 	final static String CN_SUFFIX = "-CN";
@@ -118,6 +120,8 @@ public class COGS {
 					allCOGS.get(NFAccountEnum.AMZN_HG).put(hgSKU, price);
 				if (sqbSKU != null)
 					allCOGS.get(NFAccountEnum.AMZN_SQB).put(sqbSKU, price);
+				if (emcSKU != null)
+					allCOGS.get(NFAccountEnum.AMZN_EMC).put(emcSKU, price);
 
 				// TODO, for ebay, wmt, and etsy, the report has 15% fees. only add shipping
 				// cost?
@@ -141,7 +145,13 @@ public class COGS {
 		return count;
 	}
 
-	public float getCOGS(NFAccountEnum a, String sku) {
+	/**
+	 * Get real COGS in RMB
+	 * @param a
+	 * @param sku
+	 * @return
+	 */
+	public double getRealCOGSInRMB(NFAccountEnum a, String sku) {
 		// System.out.println("getting COGS on SKU :" + sku + " for accout:" + a);
 		if (allCOGS == null)
 			System.out.print("allCOGS is null");
@@ -233,6 +243,11 @@ public class COGS {
 		if (sku.endsWith(KWH_SUFFIX)) {
 			return sku.substring(0, sku.length() - KWH_SUFFIX.length());
 		}
+		
+		if (sku.endsWith(NC_SUFFIX_LONG)) {
+			return sku.substring(0, sku.length() - NC_SUFFIX_LONG.length());
+		}
+		
 		if (sku.endsWith(NC_SUFFIX)) {
 			return sku.substring(0, sku.length() - NC_SUFFIX.length());
 		}
@@ -281,7 +296,7 @@ public class COGS {
 			br.write(cogs.toString());
 			br.close();
 
-			System.out.println(cogs.getCOGS(NFAccountEnum.AMZN_TQS, "7-100072801-1001-38620011"));
+			System.out.println(cogs.getRealCOGSInRMB(NFAccountEnum.AMZN_TQS, "7-100072801-1001-38620011"));
 
 		} catch (Exception e) {
 			e.printStackTrace();

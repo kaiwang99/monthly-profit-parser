@@ -40,13 +40,13 @@ class PaypalCSVTxnParserTest {
 		tqsParser = new PaypalCSVTxnParser(tqsPPFile);     //args[0]);
 		NFAccountEnum nfAcct = NFAccountEnum.getEnumType(tqsPPFile);
 		logger.info("find NFAccountEnum from file name:{}", nfAcct);
-		tqsParser.setCOGS(nfAcct,  cogs);
+		tqsParser.setAccountAndCOGS(nfAcct,  cogs);
 		tqsParser.initOutputFile();
 		
 		wsdParser = new PaypalCSVTxnParser(wsdPPFile);     //args[0]);
 		nfAcct = NFAccountEnum.getEnumType(wsdPPFile);
 		logger.info("find NFAccountEnum from file name:{}", nfAcct);
-		wsdParser.setCOGS(nfAcct,  cogs);
+		wsdParser.setAccountAndCOGS(nfAcct,  cogs);
 		wsdParser.initOutputFile();
 
 	}

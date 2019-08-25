@@ -25,7 +25,8 @@ public class Util {
 	public static final Locale IT_LOCALE = new Locale("it", "IT");
 	public static final Locale ES_LOCALE = new Locale("es", "ES");
 	
-	public final static double US_SHIP_COST = 3.3; 
+	private final static double US_SHIP_COST = 3.9; 
+	public final static double RUS_ROP_SHIP_COST = 9.6; 
 	
 	/**
 	 * Pass in locale and create  localeTypeStr -> stdTypeStr Map
@@ -122,6 +123,7 @@ public class Util {
 		// use NumberFormat to handle different thousand separator and
 		// decimal separator correctly. No p.replaceAll(",",".")
 		
+		//TODO  change Locale when needed. Probably another input in the variable. 
 		NumberFormat format = NumberFormat.getInstance(Locale.US);
 		Number number = null;
 		try {
@@ -134,4 +136,18 @@ public class Util {
 		
 		return d;
 	}
+	
+	/**
+	 * Before we get shipping cost from Teapplix for each order, this is an estimate by SKU
+	 * 
+	 */
+	public static double getShippingCost(String aSKU) {
+		double cost = US_SHIP_COST;
+		
+		// rope light cost more, like 0-RUS18-ROP19-6M4MD-013FLAT
+		if (aSKU.contains("RUS") && aSKU.contains("ROP"))
+			cost = RUS_ROP_SHIP_COST;		
+		return cost;
+	}
+	
 }

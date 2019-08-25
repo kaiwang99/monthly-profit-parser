@@ -26,6 +26,7 @@ import static com.nineforce.ecom.csvparser.Util.*;
 
 
 public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
+
 	//String csvPayPalFile;    //PP file
 	//String csvEbayFile;		// ebay file corresponding. not class variable, only use in parser although 
 	
@@ -457,9 +458,10 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 			logger.debug("Get SKU[{}] for transaction {} from file:{}", sku, txnID, csvInputFile); 
 		
 			if(sku != null) {
-				float skuCOGS_RMB = cogs.getCOGS	(enumAccount, sku);
+				double skuCOGS_RMB = cogs.getRealCOGSInRMB(enumAccount, sku);
 				float skuCOGS_Loc = (float) (skuCOGS_RMB/Util.getCurrentRate(Util.US_LOCALE));
-				double net = (float)grossNet - skuCOGS_Loc - US_SHIP_COST;
+				double shippingCost = Util.getShippingCost(sku);
+				double net = (float)grossNet - skuCOGS_Loc - shippingCost;
 				
 				//write out SKU, COGS, shipping, and net
 				 cell = row.createCell(cellid++);
@@ -467,12 +469,12 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 		         cell = row.createCell(cellid++);
 		         cell.setCellValue(round(skuCOGS_Loc));
 		         cell = row.createCell(cellid++);
-		         cell.setCellValue(US_SHIP_COST);			//shipping avg about $3.2
+		         cell.setCellValue(shippingCost);			//shipping avg about $3.2
 		         cell = row.createCell(cellid++);
 		         cell.setCellValue(round(net));
 		         
 		         totalCOGS += skuCOGS_Loc;
-		         totalShipping += US_SHIP_COST;
+		         totalShipping += shippingCost;
 		         totalNetFromEbay += net;
 		         
 		         monthlyNetForBonus += net;
@@ -486,8 +488,7 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 		}
 	}
 	
-	
-	
+
 	/**
 	 * Write out the header line after summary section by the csv record, 
 	 * adding COGS and Net two columns.  
@@ -573,7 +574,7 @@ public class PaypalCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 		PaypalCSVTxnParser parser = new PaypalCSVTxnParser(ppTestFile);     //args[0]);
 		NFAccountEnum nfAcct = NFAccountEnum.getEnumType(ppTestFile);
 		logger.info("find NFAccountEnum from file name:{}", nfAcct);
-		parser.setCOGS(nfAcct,  cogs);
+		parser.setAccountAndCOGS(nfAcct,  cogs);
 		parser.initOutputFile();
 		
 		parser.parseFile();		//parse PP file and create output .xlsx
