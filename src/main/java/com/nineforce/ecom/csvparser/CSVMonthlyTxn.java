@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//import static com.nineforce.ecom.util.NFAccountTypeEnum.*;    
+//import static com.nineforce.ecom.util.NFAccountTypeEnum.*;  
+//test
 
 /**
  * This is the main entry that handles all accounts. it invokes  COGS to read cogs file
