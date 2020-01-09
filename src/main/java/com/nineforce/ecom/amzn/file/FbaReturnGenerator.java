@@ -79,7 +79,7 @@ public class FbaReturnGenerator {
 	}
 	
 	/**
-	 * pare input csv  file
+	 * pare input csv file
 	 * @throws IOException 
 	 */
 	public void parse() throws IOException {
