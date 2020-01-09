@@ -16,8 +16,13 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
+import com.nineforce.ecom.csvparser.CSVMonthlyTxn;
 import com.nineforce.ecom.csvparser.NFAccountEnum;
 import com.nineforce.ecom.csvparser.NFAccountTypeEnum;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /** 
  * Read in a csv file about returns then generate tab delimited files for each SKU
@@ -34,8 +39,10 @@ import com.nineforce.ecom.csvparser.NFAccountTypeEnum;
 
 public class FbaReturnGenerator {
 	
+	public static Logger logger = (Logger) LoggerFactory.getLogger(FbaReturnGenerator.class);
+	
 	final int MAX_ORDR_SEQ = 99; 
-	final int ORDER_SIZE = 36; 
+	final int ORDER_SIZE = 1; 
 	final String subDir= "fba-returns";
 	
 	// Those vars are account dependent
@@ -46,7 +53,8 @@ public class FbaReturnGenerator {
 	String returnFile = null; 
 	
 	int totalOrder=0, totalQtyOutput=0, totalQtyInput=0;
-	Hashtable<String, String> retSkuQty = new Hashtable<String, String>(); 
+	Hashtable<String, String> unfulfillSkuQty = new Hashtable<String, String>(); 
+	Hashtable<String, String> goodItemSkuQty = new Hashtable<String, String>(); 
 	
 	public FbaReturnGenerator(String amznAcctName, String returnFile) {
 		this.amznAcctEnum = NFAccountEnum.getEnumType(NFAccountTypeEnum.AMZN, amznAcctName);
@@ -59,7 +67,7 @@ public class FbaReturnGenerator {
 	 */
 	void initByAccount()	{
 		switch (this.amznAcctEnum) {
-		case AMZN_TQS: addressHeader = TQS_HDR; orderPrefix = "R"; break;
+		case AMZN_TQS: addressHeader = TQS_HDR_UNFULFILL; orderPrefix = "DA"; break;
 		case AMZN_SQB: addressHeader = SQB_HDR; orderPrefix = "S"; break;
 		case AMZN_HG:  addressHeader = HG_HDR;  orderPrefix = "H"; break;
 		case AMZN_WSD:  addressHeader = WSD_HDR;  orderPrefix = "W"; break;
@@ -88,17 +96,32 @@ public class FbaReturnGenerator {
                     // Accessing values by Header names
 
                     String sku = csvRecord.get("SKU");
-                    String qty = csvRecord.get("Return Quantity");                  
-
-                    System.out.println("Record No - " + csvRecord.getRecordNumber());
-                    System.out.println("---------------");
-                    System.out.println("sku : " + sku);
-                    System.out.println("qty : " + qty);
+                    String unfulfillQty = csvRecord.get("Unfulfillable Return Quantity");  
+                    addReturnInfo(unfulfillSkuQty, sku, unfulfillQty);
+                     
+                    String goodItemQty = csvRecord.get("Good Return Quantity");  
+                    addReturnInfo(goodItemSkuQty, sku, goodItemQty);
                     
-                    retSkuQty.put(sku,  qty); 
-
                 }
+                logger.debug("unfulfillSkuQty content\n{}", unfulfillSkuQty);
+                logger.debug("goodItemSkuQty content\n{}", goodItemSkuQty);            
+
             }
+	}
+	
+	/**
+	 * If not empty or 0 qty, then add to the hashtable for later return file generation. 
+	 * @param table
+	 * @param sku
+	 * @param qty
+	 */
+	void addReturnInfo(Hashtable<String, String> table, String sku, String qty) {
+		if (qty!=null && qty.length()>0) {
+			int i = Integer.parseInt(qty);
+			if (i>0) {
+				table.put(sku, qty);
+			}
+		}
 	}
 	
 	public void genReturnFiles() throws IOException {
@@ -114,12 +137,12 @@ public class FbaReturnGenerator {
 		//Set<String> keys = retSkuQty.keySet();
 		//Iterator<String> it = keys.iterator();
 		
-		Enumeration<String> it = retSkuQty.keys();
+		Enumeration<String> it = unfulfillSkuQty.keys();
 		
 		while (it.hasMoreElements()) {
 
 			String sku = (String)it.nextElement();
-			String qty = (String) retSkuQty.get(sku); 
+			String qty = (String) unfulfillSkuQty.get(sku); 
 			String order_num_base = orderPrefix + counter++;
 			
 			//System.out.println(sku + "--" + qty + "--" + order_num_base);
@@ -130,7 +153,7 @@ public class FbaReturnGenerator {
 		
 		csvPrinter.flush();
 		System.out.println("total  input: " + totalQtyInput + "\ntotal output: " + totalQtyOutput +
-				"\ntotal return orders:" + totalOrder  + "\ntotal SKU: " + retSkuQty.size());
+				"\ntotal return orders:" + totalOrder  + "\ntotal SKU: " + unfulfillSkuQty.size());
 	}
 	
 	
@@ -176,9 +199,9 @@ public class FbaReturnGenerator {
 			
 			bw.write(addressHeader);
 
-					
+			//TODO, important about good or unfulfillable
 			// for large qty, separate into small ones
-			bw.write(sku + "\t" + loopQty + "\t" + 0);  
+			bw.write(sku + "\t" + 0 + "\t" + loopQty);  
 			bw.write("\r\n");
 			bw.close();
 			
@@ -197,18 +220,18 @@ public class FbaReturnGenerator {
 	}
 
 
-	final String TQS_HDR = 
+	final String TQS_HDR_UNFULFILL = 
 			"RemovalDisposition	Return 												\r" + 
 			"AddressName	9Force Fulfillment Center 												\r" + 
-			"AddressFieldOne	100 Landsdowne CT  												\r" + 
-			"AddressFieldTwo													\r" + 
+			"AddressFieldOne	607 Ellis Road 												\r" + 
+			"AddressFieldTwo	STE 51A											\r" + 
 			"AddressFieldThree													\r" + 
-			"AddressCity	Cary  												\r" + 
+			"AddressCity	Durham  												\r" + 
 			"AddressCountryCode	US 												\r" + 
 			"AddressStateOrRegion	NC 												\r" + 
-			"AddressPostalCode	27519 												\r" + 
+			"AddressPostalCode	27703 												\r" + 
 			"ContactPhoneNumber	919 367 7316												\r" + 
-			"ShippingNotes												\r" + 
+			"ShippingNotes	Bu4 Ke2 Shou4										\r" + 
 			"													\r" + 
 			"MerchantSKU	SellableQuantity	UnsellableQuantity\r";
 	

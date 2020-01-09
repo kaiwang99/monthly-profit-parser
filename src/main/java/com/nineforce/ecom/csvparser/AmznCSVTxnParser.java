@@ -599,9 +599,9 @@ public class AmznCSVTxnParser extends NFCsvTxnParser {
 	//private static final String SAMPLE_CSV_FILE_PATH = "./src/main/resources/2018FebMonthlyTransaction-AD.csv";
     
 	
-	private static final String COGS_PATH = "./2019Mar-v1/COGS.csv";
+	private static final String COGS_PATH = "./2019Nov/COGS.csv";
 	//private static final String TEST_FILE = "./JulyTxn/2018JulMonthlyTransaction-Amazon-TQS-US.csv";
-	private static final String TEST_FILE = "./2019Mar-v1/2019MarMonthlyTransaction-Amazon-AD-US.csv";
+	private static final String TEST_FILE = "./2019Nov/2019NovMonthlyTransaction-Amazon-HG-US.csv";
 
 	
 	public static void main(String[] args) throws IOException {
