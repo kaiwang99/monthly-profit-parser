@@ -313,7 +313,7 @@ public class WmtCSVTxnParser extends NFCsvTxnParser implements NFcsvParser {
 		WmtCSVTxnParser parser = new WmtCSVTxnParser(wmtTestFile);     //args[0]);
 		NFAccountEnum nfAcct = NFAccountEnum.getEnumType(wmtTestFile);
 		logger.info("find NFAccountEnum from file name:{}", nfAcct);
-		parser.setAccountAndCOGS(nfAcct,  cogs);
+		parser.init(nfAcct,  cogs, null);
 		parser.initOutputFile();
 		
 		parser.parseFile();		//parse PP file and create output .xlsx
